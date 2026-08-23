@@ -7,6 +7,9 @@ import { ConsentPage } from '@/pages/ConsentPage'
 import { ConsentDeclinePage } from '@/pages/ConsentDeclinePage'
 import { AssessmentPage } from '@/pages/AssessmentPage'
 import { SupportPage } from '@/pages/SupportPage'
+import { CaseDashboardPage } from '@/pages/CaseDashboardPage'
+import { CaseListPage } from '@/pages/CaseListPage'
+import { CaseDetailPage } from '@/pages/CaseDetailPage'
 
 function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState({ message: '', visible: false })
@@ -44,6 +47,9 @@ export default function App() {
             <Route path="/consent/decline" element={<ConsentDeclinePage />} />
             <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/dashboard" element={<CaseDashboardPage />} />
+            <Route path="/cases" element={<CaseListPage />} />
+            <Route path="/cases/:caseId" element={<CaseDetailPage />} />
           </Routes>
         </Layout>
       </ToastProvider>

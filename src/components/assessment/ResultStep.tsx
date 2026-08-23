@@ -2,6 +2,7 @@ import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmergencyDialog } from '@/components/emergency/EmergencyDialog'
+import { ExplainableAI } from '@/components/assessment/ExplainableAI'
 import { IndicatorList, SVIGauge } from '@/components/assessment/SVIGauge'
 import type { AssessmentResult } from '@/types'
 
@@ -38,7 +39,7 @@ export function ResultStep({ result, onNext }: ResultStepProps) {
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
               The system identified indicators that may require immediate human support. You are
-              not alone — help is available.
+              not alone. Help is available.
             </p>
             <EmergencyDialog
               trigger={
@@ -54,18 +55,7 @@ export function ResultStep({ result, onNext }: ResultStepProps) {
         <IndicatorList indicators={result.indicators} />
       </div>
 
-      <div className="rounded-lg border border-border bg-surface-muted p-4">
-        <h3 className="font-semibold text-sm mb-2">Why this assessment was generated</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-          {result.explainableIndicators.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-        <p className="text-sm text-muted-foreground mt-3">
-          AI confidence: {result.aiConfidence}% — confidence in the classification approach,
-          not certainty about your mental state.
-        </p>
-      </div>
+      <ExplainableAI result={result} />
 
       <Button onClick={onNext} size="lg">
         View Support Recommendations

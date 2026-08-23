@@ -21,11 +21,13 @@ export function AssessmentWizard() {
     step,
     context,
     narrative,
+    channel,
     result,
     demoPersonaId,
     setStep,
     setContext,
     setNarrative,
+    setChannel,
     setResult,
     setDemoPersona,
   } = useAssessmentStore()
@@ -65,6 +67,7 @@ export function AssessmentWizard() {
   const handleRunDemo = (persona: RiskCategory) => {
     const demoNarrative = getDemoNarrative(persona)
     setDemoPersona(persona)
+    setChannel('text')
     setContext({
       preferredLanguage: 'en',
       incidentCategory: 'caste-based-violence',
@@ -100,6 +103,8 @@ export function AssessmentWizard() {
       {step === 'narrative' && (
         <NarrativeStep
           narrative={narrative}
+          channel={channel}
+          onChannelChange={setChannel}
           onChange={setNarrative}
           onNext={handleNarrativeNext}
           onBack={() => setStep('context')}

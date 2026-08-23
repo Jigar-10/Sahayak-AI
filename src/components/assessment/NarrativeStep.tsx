@@ -1,17 +1,33 @@
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { VoiceRecorder } from '@/components/assessment/VoiceRecorder'
 import { cn } from '@/lib/utils'
 import { FileText, Mic } from 'lucide-react'
+import type { InteractionChannel } from '@/types'
 
 interface NarrativeStepProps {
   narrative: string
+  channel: InteractionChannel
+  onChannelChange: (channel: InteractionChannel) => void
   onChange: (value: string) => void
   onNext: () => void
   onBack: () => void
 }
 
-export function NarrativeStep({ narrative, onChange, onNext, onBack }: NarrativeStepProps) {
-  const canContinue = narrative.trim().length >= 20
+export function NarrativeStep({
+  narrative,
+  channel,
+  onChannelChange,
+  onChange,
+  onNext,
+  onBack,
+}: NarrativeStepProps) {
+  const canContinue = channel === 'voice' || narrative.trim().length >= 20
+
+  const handleVoiceReady = (transcript: string) => {
+    onChange(transcript)
+    onNext()
+  }
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -26,51 +42,72 @@ export function NarrativeStep({ narrative, onChange, onNext, onBack }: Narrative
       <fieldset>
         <legend className="text-sm font-medium mb-3">Choose interaction method</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div
+          <button
+            type="button"
+            onClick={() => onChannelChange('text')}
             className={cn(
-              'flex items-center gap-3 rounded-lg border-2 border-primary bg-primary/5 p-4',
+              'flex min-h-20 items-center gap-3 rounded-lg border p-4 text-left transition-colors',
+              channel === 'text'
+                ? 'border-2 border-primary bg-primary/5'
+                : 'border-border bg-surface hover:bg-surface-muted',
             )}
-            aria-current="true"
+            aria-pressed={channel === 'text'}
           >
             <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
             <div>
               <p className="font-medium text-sm">Text</p>
               <p className="text-xs text-muted-foreground">Type your narrative</p>
             </div>
-          </div>
-          <div
-            className="flex items-center gap-3 rounded-lg border border-border bg-surface-muted p-4 opacity-60"
-            aria-disabled="true"
+          </button>
+          <button
+            type="button"
+            onClick={() => onChannelChange('voice')}
+            className={cn(
+              'flex min-h-20 items-center gap-3 rounded-lg border p-4 text-left transition-colors',
+              channel === 'voice'
+                ? 'border-2 border-primary bg-primary/5'
+                : 'border-border bg-surface hover:bg-surface-muted',
+            )}
+            aria-pressed={channel === 'voice'}
           >
-            <Mic className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            <Mic className="h-5 w-5 text-primary" aria-hidden="true" />
             <div>
-              <p className="font-medium text-sm text-muted-foreground">Voice</p>
-              <p className="text-xs text-muted-foreground">Available in Phase 2</p>
+              <p className="font-medium text-sm">Voice</p>
+              <p className="text-xs text-muted-foreground">Record your narrative</p>
             </div>
-          </div>
+          </button>
         </div>
       </fieldset>
 
-      <div className="space-y-2">
-        <Label htmlFor="narrative">Your narrative</Label>
-        <textarea
-          id="narrative"
-          value={narrative}
-          onChange={(e) => onChange(e.target.value)}
-          rows={10}
-          placeholder="Tell us what happened in your own words..."
-          className="flex w-full rounded-md border border-border bg-surface px-3 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y min-h-[200px]"
-          aria-describedby="narrative-hint"
+      {channel === 'text' ? (
+        <div className="space-y-2">
+          <Label htmlFor="narrative">Your narrative</Label>
+          <textarea
+            id="narrative"
+            value={narrative}
+            onChange={(e) => onChange(e.target.value)}
+            rows={10}
+            placeholder="Tell us what happened in your own words..."
+            className="flex w-full rounded-md border border-border bg-surface px-3 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y min-h-[200px]"
+            aria-describedby="narrative-hint"
+          />
+          <p id="narrative-hint" className="text-xs text-muted-foreground">
+            Your text is saved automatically as you type.
+          </p>
+        </div>
+      ) : (
+        <VoiceRecorder
+          onTranscriptReady={handleVoiceReady}
+          onUseText={() => onChannelChange('text')}
         />
-        <p id="narrative-hint" className="text-xs text-muted-foreground">
-          Your text is saved automatically as you type.
-        </p>
-      </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={onNext} disabled={!canContinue} size="lg">
-          Submit for Analysis
-        </Button>
+        {channel === 'text' && (
+          <Button onClick={onNext} disabled={!canContinue} size="lg">
+            Submit for Analysis
+          </Button>
+        )}
         <Button onClick={onBack} variant="outline" size="lg">
           Back
         </Button>

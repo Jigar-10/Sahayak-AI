@@ -60,12 +60,22 @@ export interface CaseRecord {
   incidentCategory: string
   assignedOfficer: string | null
   status: CaseStatus
+  recommendedActions: string[]
+  notes: CaseNote[]
+  escalated: boolean
   timeline: TimelineEvent[]
 }
 
 export interface TimelineEvent {
   id: string
   label: string
+  timestamp: string
+}
+
+export interface CaseNote {
+  id: string
+  author: string
+  text: string
   timestamp: string
 }
 

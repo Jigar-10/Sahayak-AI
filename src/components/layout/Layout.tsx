@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/consent', label: 'Assessment' },
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/cases', label: 'Cases' },
   { to: '/support', label: 'Support' },
 ]
 

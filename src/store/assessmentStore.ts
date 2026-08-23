@@ -5,6 +5,7 @@ import type {
   AssessmentResult,
   AssessmentStep,
   ConsentState,
+  InteractionChannel,
   RiskCategory,
 } from '@/types'
 
@@ -21,6 +22,7 @@ interface AssessmentStore {
   consent: ConsentState
   context: AssessmentContext
   narrative: string
+  channel: InteractionChannel
   result: AssessmentResult | null
   assessmentId: string | null
   demoPersonaId: RiskCategory | null
@@ -29,6 +31,7 @@ interface AssessmentStore {
   setConsent: (consent: Partial<ConsentState>) => void
   setContext: (context: Partial<AssessmentContext>) => void
   setNarrative: (narrative: string) => void
+  setChannel: (channel: InteractionChannel) => void
   setResult: (result: AssessmentResult | null) => void
   setDemoPersona: (persona: RiskCategory | null) => void
   setEscalatedCaseId: (caseId: string) => void
@@ -48,6 +51,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
   },
   context: { ...defaultContext },
   narrative: '',
+  channel: 'text',
   result: null,
   assessmentId: null,
   demoPersonaId: null,
@@ -63,6 +67,8 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
 
   setNarrative: (narrative) => set({ narrative }),
 
+  setChannel: (channel) => set({ channel }),
+
   setResult: (result) => set({ result }),
 
   setDemoPersona: (persona) => set({ demoPersonaId: persona }),
@@ -74,6 +80,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       step: 'context',
       context: { ...defaultContext },
       narrative: '',
+      channel: 'text',
       result: null,
       assessmentId: createAssessmentId(),
       demoPersonaId: null,
@@ -86,7 +93,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       id: state.assessmentId ?? createAssessmentId(),
       context: state.context,
       narrative: state.narrative,
-      channel: 'text',
+      channel: state.channel,
       result: state.result,
       consentGiven: Object.values(state.consent).every(Boolean),
       createdAt: new Date().toISOString(),

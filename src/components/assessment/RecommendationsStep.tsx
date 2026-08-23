@@ -1,10 +1,11 @@
+import { Link } from 'react-router-dom'
 import {
+  CheckCircle2,
+  Eye,
   Heart,
   Scale,
-  Stethoscope,
   Shield,
-  Eye,
-  CheckCircle2,
+  Stethoscope,
 } from 'lucide-react'
 import { getRecommendationsForRisk } from '@/constants/recommendations'
 import { Button } from '@/components/ui/button'
@@ -30,12 +31,11 @@ interface RecommendationsStepProps {
 export function RecommendationsStep({ result }: RecommendationsStepProps) {
   const { showToast } = useToast()
   const { getAssessmentSnapshot, setEscalatedCaseId, escalatedCaseId } = useAssessmentStore()
-  const createCase = useCaseStore((s) => s.createCaseFromAssessment)
-
+  const createCase = useCaseStore((state) => state.createCaseFromAssessment)
   const recommendations = getRecommendationsForRisk(result.riskCategory)
 
   const handleRequest = (title: string) => {
-    showToast(`Request sent for ${title} — a team member will follow up.`)
+    showToast(`Request sent for ${title}. A team member will follow up.`)
   }
 
   const handleEscalate = () => {
@@ -43,6 +43,7 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
       showToast(`Case ${escalatedCaseId} already created for this assessment.`)
       return
     }
+
     const assessment = getAssessmentSnapshot()
     const newCase = createCase(assessment)
     setEscalatedCaseId(newCase.id)
@@ -65,32 +66,33 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {recommendations.map((rec) => {
-          const Icon = ICON_MAP[rec.icon]
+        {recommendations.map((recommendation) => {
+          const Icon = ICON_MAP[recommendation.icon]
+
           return (
-            <Card key={rec.id}>
+            <Card key={recommendation.id}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                  {rec.title}
+                  {recommendation.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <span
                   className={cn(
-                    'inline-block rounded-full border px-2 py-0.5 text-xs font-medium mb-2 capitalize',
-                    priorityStyles[rec.priority],
+                    'mb-2 inline-block rounded-md border px-2 py-0.5 text-xs font-medium capitalize',
+                    priorityStyles[recommendation.priority],
                   )}
                 >
-                  {rec.priority}
+                  {recommendation.priority}
                 </span>
-                <p className="text-sm text-muted-foreground">{rec.description}</p>
+                <p className="text-sm text-muted-foreground">{recommendation.description}</p>
               </CardContent>
               <CardFooter>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRequest(rec.title)}
+                  onClick={() => handleRequest(recommendation.title)}
                   className="w-full"
                 >
                   Request Support
@@ -102,18 +104,26 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
       </div>
 
       <Card className="border-primary/30">
-        <CardContent className="pt-6 space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <h3 className="font-semibold">Escalate for Immediate Human Review</h3>
           <p className="text-sm text-muted-foreground">
             A trained human reviewer will examine your assessment and coordinate appropriate
             follow-up support.
           </p>
           {escalatedCaseId ? (
-            <div className="flex items-center gap-2 text-accent">
-              <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-              <span className="text-sm font-medium">
-                Case created: {escalatedCaseId}
-              </span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-accent">
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                <span className="text-sm font-medium">Case created: {escalatedCaseId}</span>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button asChild variant="outline">
+                  <Link to="/dashboard">Open Case Dashboard</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to={`/cases/${escalatedCaseId}`}>Open Case Detail</Link>
+                </Button>
+              </div>
             </div>
           ) : (
             <Button onClick={handleEscalate} variant="default" size="lg">
