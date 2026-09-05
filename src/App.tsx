@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { OwnerRoute } from '@/components/layout/OwnerRoute'
 import { Toast } from '@/components/ui/toast'
 import { HomePage } from '@/pages/HomePage'
 import { ConsentPage } from '@/pages/ConsentPage'
@@ -10,6 +11,7 @@ import { SupportPage } from '@/pages/SupportPage'
 import { CaseDashboardPage } from '@/pages/CaseDashboardPage'
 import { CaseListPage } from '@/pages/CaseListPage'
 import { CaseDetailPage } from '@/pages/CaseDetailPage'
+import { OwnerLoginPage } from '@/pages/OwnerLoginPage'
 
 function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState({ message: '', visible: false })
@@ -47,9 +49,13 @@ export default function App() {
             <Route path="/consent/decline" element={<ConsentDeclinePage />} />
             <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/support" element={<SupportPage />} />
-            <Route path="/dashboard" element={<CaseDashboardPage />} />
-            <Route path="/cases" element={<CaseListPage />} />
-            <Route path="/cases/:caseId" element={<CaseDetailPage />} />
+            <Route path="/owner-login" element={<OwnerLoginPage />} />
+
+            <Route element={<OwnerRoute />}>
+              <Route path="/dashboard" element={<CaseDashboardPage />} />
+              <Route path="/cases" element={<CaseListPage />} />
+              <Route path="/cases/:caseId" element={<CaseDetailPage />} />
+            </Route>
           </Routes>
         </Layout>
       </ToastProvider>
