@@ -29,8 +29,9 @@ const resources = [
 
 export function SupportPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-2xl md:text-3xl font-bold mb-2">Support Resources</h1>
+    <div className="animate-enter mx-auto max-w-7xl px-4 py-12 lg:px-8">
+      <p className="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-primary">You’re not alone</p>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Support Resources</h1>
       <p className="text-muted-foreground mb-8 max-w-2xl">
         Available support pathways. For a personalized recommendation, consider starting the
         safe assessment.

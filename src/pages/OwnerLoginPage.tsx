@@ -1,4 +1,5 @@
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LockKeyhole, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -30,10 +31,10 @@ export function OwnerLoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
+    <div className="animate-enter mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
       <Card className="w-full">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_10px_24px_rgba(79,70,229,0.24)]">
             <Shield className="h-6 w-6" aria-hidden="true" />
           </div>
           <CardTitle>Owner / Staff Login</CardTitle>

@@ -31,26 +31,26 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-surface/80 backdrop-blur-xl supports-[backdrop-filter]:bg-surface/70">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
         <Link to="/" className="flex min-w-0 items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground" aria-hidden="true">
-            <Shield className="h-5 w-5" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_8px_18px_rgba(79,70,229,0.24)]" aria-hidden="true">
+            <Shield className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-primary leading-tight">National Helpline Against Atrocities</p>
-            <p className="truncate text-xs text-muted-foreground">AI-Assisted Stress &amp; Trauma Assessment</p>
+            <p className="truncate text-sm font-bold tracking-tight text-foreground leading-tight">Sahayak <span className="text-primary">AI</span></p>
+            <p className="truncate text-[11px] font-medium text-muted-foreground">Safe support, one step at a time</p>
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+        <nav className="hidden md:flex items-center gap-1 rounded-2xl border border-border/70 bg-surface-muted/70 p-1" aria-label="Main navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) => cn(
-                'rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-11 flex items-center',
-                isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-surface-muted',
+                'rounded-xl px-3 py-2 text-sm font-semibold transition-all min-h-10 flex items-center',
+                isActive ? 'bg-surface text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface',
               )}
             >
               {item.label}
@@ -65,7 +65,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="icon" aria-label="Help and information"><HelpCircle className="h-5 w-5" aria-hidden="true" /></Button>
+          <Button variant="ghost" size="icon" aria-label="Help and information" className="hidden sm:inline-flex"><HelpCircle className="h-5 w-5" aria-hidden="true" /></Button>
           <AccessibilityControls />
           <EmergencyButton />
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen((v) => !v)} aria-expanded={mobileOpen} aria-controls="mobile-nav" aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>
@@ -100,10 +100,10 @@ export function Header() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface mt-auto">
-      <div className="mx-auto max-w-6xl px-4 py-6">
-        <p className="text-center text-sm text-muted-foreground">Prototype built for Smart India Hackathon 2026. Not an official government service. All data shown is fictional.</p>
-        <p className="text-center text-xs text-muted-foreground mt-2">Helpline reference: 14566 (demonstration only)</p>
+    <footer className="mt-auto border-t border-border/70 bg-surface/70">
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-center text-sm text-muted-foreground lg:px-8">
+        <p className="font-medium text-foreground/75">Sahayak AI · trauma-informed support for safer next steps.</p>
+        <p className="text-xs">Prototype built for Smart India Hackathon 2026. Not an official government service. For immediate danger, call 112.</p>
       </div>
     </footer>
   )

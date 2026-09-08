@@ -64,11 +64,11 @@ export function CaseListPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="animate-enter mx-auto max-w-7xl px-4 py-10 lg:px-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-primary">Demonstration Data</p>
-          <h1 className="text-2xl font-bold">Case List</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Operations</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Case List</h1>
           <p className="text-sm text-muted-foreground">
             Cases shown here are pulled directly from the shared case store.
           </p>
@@ -104,7 +104,7 @@ export function CaseListPage() {
         </CardContent>
       </Card>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+      <div className="overflow-x-auto rounded-2xl border border-border/80 bg-surface shadow-[0_10px_35px_rgba(31,41,75,0.06)]">
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="bg-surface-muted text-xs uppercase text-muted-foreground">
             <tr>

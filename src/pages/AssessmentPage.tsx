@@ -13,7 +13,7 @@ export function AssessmentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="animate-enter mx-auto max-w-4xl px-4 py-10">
       <ErrorBoundary fallbackTitle="Assessment encountered an issue">
         <AssessmentWizard />
       </ErrorBoundary>

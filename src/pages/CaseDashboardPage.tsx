@@ -59,11 +59,11 @@ function DashboardContent() {
   ]
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="animate-enter mx-auto max-w-7xl px-4 py-10 lg:px-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-primary">Demonstration Data</p>
-          <h1 className="text-2xl font-bold">Case Dashboard</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Operations overview</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Case Dashboard</h1>
           <p className="text-sm text-muted-foreground">
             Live case metrics derived from the shared in-memory case store.
           </p>
@@ -74,7 +74,7 @@ function DashboardContent() {
       </div>
 
       {kpis.critical > 0 && (
-        <div className="mb-6 rounded-lg border border-critical/30 bg-red-50 p-4">
+        <div className="mb-6 rounded-2xl border border-critical/30 bg-rose-50/80 p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-critical" aria-hidden="true" />
@@ -96,13 +96,13 @@ function DashboardContent() {
         {kpiItems.map((item, index) => {
           const Icon = kpiIcons[index]
           return (
-            <Card key={item.label}>
+            <Card key={item.label} className="group">
               <CardContent className="flex items-center justify-between p-5">
                 <div>
                   <p className="text-sm text-muted-foreground">{item.label}</p>
-                  <p className="mt-1 text-3xl font-semibold">{item.value}</p>
+                  <p className="mt-1 text-3xl font-bold tracking-tight">{item.value}</p>
                 </div>
-                <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
+                <div className="rounded-xl bg-primary/10 p-2.5 text-primary transition-transform duration-200 group-hover:scale-110"><Icon className="h-5 w-5" aria-hidden="true" /></div>
               </CardContent>
             </Card>
           )
