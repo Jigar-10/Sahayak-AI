@@ -11,6 +11,7 @@ const publicNavItems = [
   { to: '/', label: 'Home' },
   { to: '/consent', label: 'Assessment' },
   { to: '/support', label: 'Support' },
+  { to: '/emergency', label: 'Emergency & Support' },
 ]
 
 const ownerNavItems = [

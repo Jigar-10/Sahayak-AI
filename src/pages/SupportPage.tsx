@@ -64,10 +64,13 @@ export function SupportPage() {
             </Button>
           }
         />
+        <Button variant="secondary" asChild>
+          <Link to="/emergency">View Emergency &amp; Support Numbers</Link>
+        </Button>
       </div>
 
       <p className="text-xs text-muted-foreground mt-8">
-        Demonstration Data — support contacts are placeholders in this prototype.
+        Emergency numbers are provided for information and direct calling. In immediate danger, call 112.
       </p>
     </div>
   )

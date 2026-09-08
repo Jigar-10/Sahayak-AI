@@ -8,6 +8,7 @@ import { ConsentPage } from '@/pages/ConsentPage'
 import { ConsentDeclinePage } from '@/pages/ConsentDeclinePage'
 import { AssessmentPage } from '@/pages/AssessmentPage'
 import { SupportPage } from '@/pages/SupportPage'
+import { EmergencyPage } from '@/pages/EmergencyPage'
 import { CaseDashboardPage } from '@/pages/CaseDashboardPage'
 import { CaseListPage } from '@/pages/CaseListPage'
 import { CaseDetailPage } from '@/pages/CaseDetailPage'
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/consent/decline" element={<ConsentDeclinePage />} />
             <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/emergency" element={<EmergencyPage />} />
             <Route path="/owner-login" element={<OwnerLoginPage />} />
 
             <Route element={<OwnerRoute />}>
