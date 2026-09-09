@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import { Menu, X, HelpCircle, Shield, LogOut, User, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -135,16 +135,23 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-center text-sm text-muted-foreground lg:px-8">
         <p className="font-medium text-foreground/75">Sahayak AI · trauma-informed support for safer next steps.</p>
         <p className="text-xs">Prototype built for Smart India Hackathon 2026. Not an official government service. For immediate danger, call 112.</p>
+        <div className="pt-2 text-xs flex items-center justify-center gap-3 text-muted-foreground/60">
+          <Link to="/owner/login" className="hover:text-muted-foreground transition-colors hover:underline">
+            Staff Login
+          </Link>
+          <span>·</span>
+          <span>Official Operational Portal</span>
+        </div>
       </div>
     </footer>
   )
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: { children?: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">{children ? children : <Outlet />}</main>
       <Footer />
       <ChatBox />
     </div>

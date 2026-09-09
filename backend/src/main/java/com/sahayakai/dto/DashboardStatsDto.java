@@ -12,6 +12,11 @@ public class DashboardStatsDto {
     private long emergencyEscalations;
     private long totalCases;
     private long resolvedCases;
+    private long pendingCases;
+    private long underReviewCases;
+    private long assignedCases;
+    private long rejectedCases;
+    private long emergencyNumbersCount;
 
     private List<Map<String, Object>> riskDistribution;
     private List<Map<String, Object>> casesOverTime;
@@ -82,6 +87,46 @@ public class DashboardStatsDto {
 
     public void setResolvedCases(long resolvedCases) {
         this.resolvedCases = resolvedCases;
+    }
+
+    public long getPendingCases() {
+        return pendingCases;
+    }
+
+    public void setPendingCases(long pendingCases) {
+        this.pendingCases = pendingCases;
+    }
+
+    public long getUnderReviewCases() {
+        return underReviewCases;
+    }
+
+    public void setUnderReviewCases(long underReviewCases) {
+        this.underReviewCases = underReviewCases;
+    }
+
+    public long getAssignedCases() {
+        return assignedCases;
+    }
+
+    public void setAssignedCases(long assignedCases) {
+        this.assignedCases = assignedCases;
+    }
+
+    public long getRejectedCases() {
+        return rejectedCases;
+    }
+
+    public void setRejectedCases(long rejectedCases) {
+        this.rejectedCases = rejectedCases;
+    }
+
+    public long getEmergencyNumbersCount() {
+        return emergencyNumbersCount;
+    }
+
+    public void setEmergencyNumbersCount(long emergencyNumbersCount) {
+        this.emergencyNumbersCount = emergencyNumbersCount;
     }
 
     public List<Map<String, Object>> getRiskDistribution() {

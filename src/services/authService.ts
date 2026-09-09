@@ -24,6 +24,14 @@ export const authService = {
     return res
   },
 
+  ownerLogin: async (email: string, password: string): Promise<AuthResponseData> => {
+    const res = await apiClient.post<AuthResponseData>('/auth/owner-login', { email, password })
+    if (res.token) {
+      apiClient.setToken(res.token)
+    }
+    return res
+  },
+
   register: async (
     fullName: string,
     email: string,

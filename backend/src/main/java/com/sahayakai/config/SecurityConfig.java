@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public Auth APIs
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/owner-login", "/api/auth/logout").permitAll()
 
                         // Public Emergency numbers for victims in distress
                         .requestMatchers(HttpMethod.GET, "/api/emergency-numbers/**").permitAll()

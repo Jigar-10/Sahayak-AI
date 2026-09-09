@@ -39,6 +39,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
+    @PostMapping("/owner-login")
+    @Operation(summary = "Authenticate owner and verify staff/owner privileges")
+    public ResponseEntity<ApiResponse<AuthResponse>> ownerLogin(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.ownerLogin(request);
+        return ResponseEntity.ok(ApiResponse.success("Owner login successful", response));
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Get current authenticated user profile")
     public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser) {

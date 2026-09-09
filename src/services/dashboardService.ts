@@ -9,6 +9,11 @@ export interface BackendDashboardStats {
   emergencyEscalations: number
   totalCases: number
   resolvedCases: number
+  pendingCases?: number
+  underReviewCases?: number
+  assignedCases?: number
+  rejectedCases?: number
+  emergencyNumbersCount?: number
   riskDistribution: Array<{ name: string; value: number; category: string }>
   casesOverTime: Array<{ date: string; count: number }>
   supportAllocation: Array<{ name: string; value: number }>

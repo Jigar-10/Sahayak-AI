@@ -26,6 +26,15 @@ public class DataInitializer implements CommandLineRunner {
     private final EmergencyNumberRepository emergencyNumberRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @org.springframework.beans.factory.annotation.Value("${app.owner.email:owner@sahayak.ai}")
+    private String ownerEmail;
+
+    @org.springframework.beans.factory.annotation.Value("${app.owner.password:Password@123}")
+    private String ownerPassword;
+
+    @org.springframework.beans.factory.annotation.Value("${app.owner.name:Sahayak Case Officer}")
+    private String ownerName;
+
     public DataInitializer(UserRepository userRepository,
                            CaseRepository caseRepository,
                            EmergencyNumberRepository emergencyNumberRepository,
@@ -49,11 +58,17 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initUsers() {
-        if (!userRepository.existsByEmail("owner@sahayak.ai")) {
-            User owner = new User("Sahayak Case Officer", "owner@sahayak.ai", "9876543210",
-                    passwordEncoder.encode("Password@123"), Role.ROLE_OWNER);
+        String normalizedOwnerEmail = ownerEmail != null ? ownerEmail.toLowerCase().trim() : "owner@sahayak.ai";
+        if (!userRepository.existsByEmail(normalizedOwnerEmail)) {
+            User owner = new User(
+                    ownerName != null ? ownerName.trim() : "Sahayak Case Officer",
+                    normalizedOwnerEmail,
+                    "9876543210",
+                    passwordEncoder.encode(ownerPassword != null ? ownerPassword : "Password@123"),
+                    Role.ROLE_OWNER
+            );
             userRepository.save(owner);
-            logger.info("Seeded default owner: owner@sahayak.ai / Password@123");
+            logger.info("Seeded initial owner account: {}", normalizedOwnerEmail);
         }
 
         if (!userRepository.existsByEmail("admin@sahayak.ai")) {

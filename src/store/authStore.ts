@@ -12,6 +12,7 @@ interface AuthStore {
 
   // Actions
   login: (email: string, password: string) => Promise<boolean>
+  ownerLogin: (email: string, password: string) => Promise<boolean>
   register: (name: string, email: string, password: string, phone?: string, confirmPassword?: string) => Promise<boolean>
   updateProfile: (name: string, phone?: string) => Promise<boolean>
   logout: () => Promise<void>
@@ -49,6 +50,36 @@ export const useAuthStore = create<AuthStore>((set) => ({
       return true
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Invalid credentials. Please verify your email and password.'
+      set({ isLoading: false, error: message })
+      return false
+    }
+  },
+
+  ownerLogin: async (email: string, password: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await authService.ownerLogin(email, password)
+      const isUserOwner =
+        response.user.role === 'ROLE_OWNER' ||
+        response.user.role === 'ROLE_ADMIN' ||
+        response.user.role === 'OWNER' ||
+        response.user.role === 'ADMIN'
+
+      if (!isUserOwner) {
+        throw new Error('Unauthorized: Account does not have Owner privileges.')
+      }
+
+      set({
+        user: response.user,
+        token: response.token,
+        isOwner: true,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      })
+      return true
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid official email or password.'
       set({ isLoading: false, error: message })
       return false
     }

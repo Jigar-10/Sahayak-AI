@@ -124,4 +124,53 @@ public class AuthServiceTest {
 
         assertThrows(BadCredentialsException.class, () -> authService.login(request));
     }
+
+    @Test
+    void ownerLogin_ValidCredentials_ShouldReturnAuthResponse() {
+        LoginRequest request = new LoginRequest("owner@sahayak.ai", "Password@123");
+
+        User owner = new User("Owner Officer", "owner@sahayak.ai", "9999999999", "hashedPassword", Role.ROLE_OWNER);
+        owner.setId("owner-456");
+
+        UserPrincipal principal = UserPrincipal.create(owner);
+        Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(tokenProvider.generateToken(auth)).thenReturn("owner-jwt-token");
+        when(userRepository.findById("owner-456")).thenReturn(Optional.of(owner));
+
+        AuthResponse response = authService.ownerLogin(request);
+
+        assertNotNull(response);
+        assertEquals("owner-jwt-token", response.getToken());
+        assertEquals("owner@sahayak.ai", response.getUser().getEmail());
+        assertEquals("ROLE_OWNER", response.getUser().getRole());
+    }
+
+    @Test
+    void ownerLogin_CitizenAttempt_ShouldThrowBadRequestException() {
+        LoginRequest request = new LoginRequest("citizen@sahayak.ai", "Password@123");
+
+        User citizen = new User("Citizen User", "citizen@sahayak.ai", "8888888888", "hashedPassword", Role.ROLE_USER);
+        citizen.setId("citizen-789");
+
+        UserPrincipal principal = UserPrincipal.create(citizen);
+        Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(userRepository.findById("citizen-789")).thenReturn(Optional.of(citizen));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> authService.ownerLogin(request));
+        assertTrue(ex.getMessage().contains("Unauthorized: Account does not have Owner privileges"));
+    }
+
+    @Test
+    void ownerLogin_InvalidPassword_ShouldThrowBadCredentialsException() {
+        LoginRequest request = new LoginRequest("owner@sahayak.ai", "WrongPass");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(BadCredentialsException.class, () -> authService.ownerLogin(request));
+    }
 }

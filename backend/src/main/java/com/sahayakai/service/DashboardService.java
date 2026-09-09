@@ -5,6 +5,7 @@ import com.sahayakai.model.CaseRecord;
 import com.sahayakai.model.CaseStatus;
 import com.sahayakai.model.RiskCategory;
 import com.sahayakai.repository.CaseRepository;
+import com.sahayakai.repository.EmergencyNumberRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,16 +16,18 @@ import java.util.*;
 public class DashboardService {
 
     private final CaseRepository caseRepository;
+    private final EmergencyNumberRepository emergencyNumberRepository;
 
-    public DashboardService(CaseRepository caseRepository) {
+    public DashboardService(CaseRepository caseRepository, EmergencyNumberRepository emergencyNumberRepository) {
         this.caseRepository = caseRepository;
+        this.emergencyNumberRepository = emergencyNumberRepository;
     }
 
     public DashboardStatsDto getDashboardStats() {
         List<CaseRecord> allCases = caseRepository.findAll();
 
         List<CaseRecord> activeCases = allCases.stream()
-                .filter(c -> c.getStatus() != CaseStatus.CLOSED)
+                .filter(c -> c.getStatus() != CaseStatus.CLOSED && c.getStatus() != CaseStatus.RESOLVED && c.getStatus() != CaseStatus.REJECTED)
                 .toList();
 
         long totalActive = activeCases.size();
@@ -52,9 +55,22 @@ public class DashboardService {
                 .count();
 
         long totalCases = allCases.size();
-        long resolvedCases = allCases.stream()
-                .filter(c -> c.getStatus() == CaseStatus.CLOSED)
+        long pendingCases = allCases.stream()
+                .filter(c -> c.getStatus() == CaseStatus.SUBMITTED || c.getStatus() == CaseStatus.OPEN)
                 .count();
+        long underReviewCases = allCases.stream()
+                .filter(c -> c.getStatus() == CaseStatus.UNDER_REVIEW || c.getStatus() == CaseStatus.IN_REVIEW)
+                .count();
+        long assignedCases = allCases.stream()
+                .filter(c -> c.getStatus() == CaseStatus.ASSIGNED || c.getStatus() == CaseStatus.INVESTIGATION || c.getStatus() == CaseStatus.ACTION_TAKEN)
+                .count();
+        long resolvedCases = allCases.stream()
+                .filter(c -> c.getStatus() == CaseStatus.RESOLVED || c.getStatus() == CaseStatus.CLOSED)
+                .count();
+        long rejectedCases = allCases.stream()
+                .filter(c -> c.getStatus() == CaseStatus.REJECTED)
+                .count();
+        long emergencyNumbersCount = emergencyNumberRepository.count();
 
         // 1. Risk Distribution
         List<Map<String, Object>> riskDistribution = new ArrayList<>();
@@ -130,6 +146,11 @@ public class DashboardService {
         dto.setEmergencyEscalations(emergencyEscalations);
         dto.setTotalCases(totalCases);
         dto.setResolvedCases(resolvedCases);
+        dto.setPendingCases(pendingCases);
+        dto.setUnderReviewCases(underReviewCases);
+        dto.setAssignedCases(assignedCases);
+        dto.setRejectedCases(rejectedCases);
+        dto.setEmergencyNumbersCount(emergencyNumbersCount);
         dto.setRiskDistribution(riskDistribution);
         dto.setCasesOverTime(casesOverTime);
         dto.setSupportAllocation(supportAllocation);

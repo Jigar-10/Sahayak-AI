@@ -12,6 +12,7 @@ import com.sahayakai.repository.UserRepository;
 import com.sahayakai.security.JwtTokenProvider;
 import com.sahayakai.security.UserPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,15 +59,8 @@ public class AuthService {
             throw new BadRequestException("Full name is required.");
         }
 
+        // Public citizen registration always assigns ROLE_USER to prevent privilege escalation
         Role role = Role.ROLE_USER;
-        if (request.getRole() != null) {
-            String requestedRole = request.getRole().toUpperCase().trim();
-            if ("OWNER".equals(requestedRole) || "ROLE_OWNER".equals(requestedRole)) {
-                role = Role.ROLE_OWNER;
-            } else if ("ADMIN".equals(requestedRole) || "ROLE_ADMIN".equals(requestedRole)) {
-                role = Role.ROLE_ADMIN;
-            }
-        }
 
         User user = new User(
                 displayName.trim(),
@@ -97,6 +91,40 @@ public class AuthService {
         User user = userRepository.findById(userPrincipal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        return new AuthResponse(token, new UserDto(user));
+    }
+
+    public AuthResponse ownerLogin(LoginRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new BadRequestException("Official email is required.");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new BadRequestException("Password is required.");
+        }
+
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail().toLowerCase().trim(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Invalid official email or password.");
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new BadCredentialsException("Invalid official email or password."));
+
+        if (user.getRole() != Role.ROLE_OWNER && user.getRole() != Role.ROLE_ADMIN) {
+            throw new BadRequestException("Unauthorized: Account does not have Owner privileges.");
+        }
+
+        String token = tokenProvider.generateToken(authentication);
         return new AuthResponse(token, new UserDto(user));
     }
 
