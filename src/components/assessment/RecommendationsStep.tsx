@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   CheckCircle2,
   Eye,
@@ -6,6 +7,8 @@ import {
   Scale,
   Shield,
   Stethoscope,
+  Loader2,
+  Lock,
 } from 'lucide-react'
 import { getRecommendationsForRisk } from '@/constants/recommendations'
 import { Button } from '@/components/ui/button'
@@ -14,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { useAssessmentStore } from '@/store/assessmentStore'
 import { useCaseStore } from '@/store/caseStore'
+import { useAuthStore } from '@/store/authStore'
 import type { AssessmentResult } from '@/types'
 
 const ICON_MAP = {
@@ -30,6 +34,9 @@ interface RecommendationsStepProps {
 
 export function RecommendationsStep({ result }: RecommendationsStepProps) {
   const { showToast } = useToast()
+  const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { getAssessmentSnapshot, setEscalatedCaseId, escalatedCaseId } = useAssessmentStore()
   const createCase = useCaseStore((state) => state.createCaseFromAssessment)
   const recommendations = getRecommendationsForRisk(result.riskCategory)
@@ -38,16 +45,29 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
     showToast(`Request sent for ${title}. A team member will follow up.`)
   }
 
-  const handleEscalate = () => {
+  const handleEscalate = async () => {
+    if (!isAuthenticated) {
+      showToast('Authentication required. Please sign in to officially register and file your case.')
+      navigate('/login?redirect=/apply')
+      return
+    }
+
     if (escalatedCaseId) {
       showToast(`Case ${escalatedCaseId} already created for this assessment.`)
       return
     }
 
-    const assessment = getAssessmentSnapshot()
-    const newCase = createCase(assessment)
-    setEscalatedCaseId(newCase.id)
-    showToast(`Case ${newCase.id} created. A human reviewer will follow up shortly.`)
+    try {
+      setIsSubmitting(true)
+      const assessment = getAssessmentSnapshot()
+      const newCase = await createCase(assessment)
+      setEscalatedCaseId(newCase.id)
+      showToast(`Case ${newCase.id} created successfully. A human reviewer will follow up shortly.`)
+    } catch {
+      showToast('Failed to create case. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const priorityStyles = {
@@ -117,17 +137,32 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
                 <span className="text-sm font-medium">Case created: {escalatedCaseId}</span>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Button asChild variant="outline">
-                  <Link to="/dashboard">Open Case Dashboard</Link>
+                <Button asChild variant="default">
+                  <Link to="/profile">View in My Cases</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link to={`/cases/${escalatedCaseId}`}>Open Case Detail</Link>
+                  <Link to={`/cases/${escalatedCaseId}`}>Track Case Progress</Link>
                 </Button>
               </div>
             </div>
           ) : (
-            <Button onClick={handleEscalate} variant="default" size="lg">
-              Escalate for Immediate Human Review
+            <Button onClick={handleEscalate} disabled={isSubmitting} variant="default" size="lg" className="gap-2">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Recording Case in Database...
+                </>
+              ) : isAuthenticated ? (
+                <>
+                  <Shield className="h-4 w-4" />
+                  Escalate & File Official Case
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4" />
+                  Login to File Official Case
+                </>
+              )}
             </Button>
           )}
         </CardContent>

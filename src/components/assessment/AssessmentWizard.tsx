@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { analyzeText, getDemoNarrative } from '@/services/mockAssessmentService'
+import { analyzeText } from '@/services/mockAssessmentService'
 import { useAssessmentStore } from '@/store/assessmentStore'
 import { StepIndicator } from '@/components/assessment/StepIndicator'
 import { BasicContextStep } from '@/components/assessment/BasicContextStep'
@@ -9,8 +9,6 @@ import { AnalysisStep } from '@/components/assessment/AnalysisStep'
 import { ResultStep } from '@/components/assessment/ResultStep'
 import { RecommendationsStep } from '@/components/assessment/RecommendationsStep'
 import { ImmediateDangerScreen } from '@/components/assessment/ImmediateDangerScreen'
-import { DemoModePanel } from '@/components/assessment/DemoModePanel'
-import type { RiskCategory } from '@/types'
 
 export function AssessmentWizard() {
   const navigate = useNavigate()
@@ -29,7 +27,6 @@ export function AssessmentWizard() {
     setNarrative,
     setChannel,
     setResult,
-    setDemoPersona,
   } = useAssessmentStore()
 
   const runAnalysis = useCallback(() => {
@@ -64,20 +61,6 @@ export function AssessmentWizard() {
     setStep('result')
   }, [runAnalysis, setStep])
 
-  const handleRunDemo = (persona: RiskCategory) => {
-    const demoNarrative = getDemoNarrative(persona)
-    setDemoPersona(persona)
-    setChannel('text')
-    setContext({
-      preferredLanguage: 'en',
-      incidentCategory: 'caste-based-violence',
-      immediateDanger: persona === 'critical',
-    })
-    setNarrative(demoNarrative)
-    setDangerAcknowledged(persona !== 'critical')
-    setShowDangerScreen(false)
-    setStep('analysis')
-  }
 
   if (showDangerScreen) {
     return (
@@ -119,7 +102,6 @@ export function AssessmentWizard() {
 
       {step === 'recommendations' && result && <RecommendationsStep result={result} />}
 
-      <DemoModePanel onRunDemo={handleRunDemo} />
     </>
   )
 }

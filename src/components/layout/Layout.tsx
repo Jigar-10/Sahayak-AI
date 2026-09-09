@@ -1,33 +1,41 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Menu, X, HelpCircle, Shield, LogOut } from 'lucide-react'
+import { Menu, X, HelpCircle, Shield, LogOut, User, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmergencyButton } from '@/components/emergency/EmergencyDialog'
 import { AccessibilityControls } from '@/components/accessibility/AccessibilityControls'
 import { useAuthStore } from '@/store/authStore'
+import { ChatBox } from '@/components/chat'
 import { cn } from '@/lib/utils'
 
 const publicNavItems = [
   { to: '/', label: 'Home' },
   { to: '/consent', label: 'Assessment' },
-  { to: '/support', label: 'Support' },
   { to: '/emergency', label: 'Emergency & Support' },
-]
-
-const ownerNavItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/cases', label: 'Cases' },
 ]
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const isOwner = useAuthStore((state) => state.isOwner)
-  const logoutOwner = useAuthStore((state) => state.logoutOwner)
-  const navItems = isOwner ? [...publicNavItems, ...ownerNavItems] : publicNavItems
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+  const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logoutOwner()
+  const navItems = [...publicNavItems]
+  navItems.push({ to: '/apply', label: 'Apply / File Complaint' })
+  if (isAuthenticated) {
+    navItems.push({ to: '/profile', label: 'My Cases & Profile' })
+    if (isOwner) {
+      navItems.push({ to: '/dashboard', label: 'Dashboard' })
+      navItems.push({ to: '/cases', label: 'Case Queue' })
+    }
+  }
+
+  const handleLogout = async () => {
+    await logout()
     setMobileOpen(false)
+    navigate('/login')
   }
 
   return (
@@ -56,15 +64,32 @@ export function Header() {
               {item.label}
             </NavLink>
           ))}
-          {isOwner && (
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="min-h-11">
-              <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+          {isAuthenticated ? (
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="min-h-10 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive">
+              <LogOut className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
               Sign out
+            </Button>
+          ) : (
+            <Button asChild size="sm" variant="default" className="min-h-10 text-xs font-semibold rounded-xl">
+              <Link to="/login">
+                <LogIn className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                Sign In
+              </Link>
             </Button>
           )}
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          {isAuthenticated && (
+            <Link
+              to="/profile"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition"
+              title="Open profile"
+            >
+              <User className="h-3.5 w-3.5" />
+              <span className="max-w-[120px] truncate">{user?.name ? user.name.split(' ')[0] : 'Profile'}</span>
+            </Link>
+          )}
           <Button variant="ghost" size="icon" aria-label="Help and information" className="hidden sm:inline-flex"><HelpCircle className="h-5 w-5" aria-hidden="true" /></Button>
           <AccessibilityControls />
           <EmergencyButton />
@@ -84,11 +109,17 @@ export function Header() {
                 </NavLink>
               </li>
             ))}
-            {isOwner && (
+            {isAuthenticated ? (
               <li>
-                <button type="button" onClick={handleLogout} className="block w-full rounded-md px-3 py-3 text-left text-sm font-medium min-h-11 text-foreground">
+                <button type="button" onClick={handleLogout} className="block w-full rounded-md px-3 py-3 text-left text-sm font-medium min-h-11 text-destructive">
                   Sign out
                 </button>
+              </li>
+            ) : (
+              <li>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="block w-full rounded-md px-3 py-3 text-center text-sm font-semibold min-h-11 bg-primary text-primary-foreground">
+                  Sign In
+                </Link>
               </li>
             )}
           </ul>
@@ -110,5 +141,12 @@ export function Footer() {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-screen flex-col"><Header /><main className="flex-1">{children}</main><Footer /></div>
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+      <ChatBox />
+    </div>
+  )
 }

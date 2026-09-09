@@ -7,7 +7,7 @@ describe('caseStore', () => {
     useCaseStore.setState({ cases: [], nextCaseNumber: 127 })
   })
 
-  it('creates a case with sequential ID from escalated assessment', () => {
+  it('creates a case with sequential ID from escalated assessment', async () => {
     const assessment: Assessment = {
       id: 'ASMT-TEST',
       context: {
@@ -28,7 +28,7 @@ describe('caseStore', () => {
       createdAt: new Date().toISOString(),
     }
 
-    const created = useCaseStore.getState().createCaseFromAssessment(assessment)
+    const created = await useCaseStore.getState().createCaseFromAssessment(assessment)
 
     expect(created.id).toBe('CASE-2026-00127')
     expect(created.svi).toBe(91)

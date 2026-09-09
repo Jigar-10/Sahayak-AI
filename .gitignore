@@ -11,6 +11,20 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+
+# Java / Maven build
+target/
+**/target/
+*.class
+.maven/
+**/.maven/
+
+# Local shell runner shims
+powershell.cmd
+**/powershell.cmd
 
 # Editor directories and files
 .vscode/*

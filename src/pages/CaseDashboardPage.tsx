@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  AlertCircle,
   AlertTriangle,
   Briefcase,
   FileText,
   HeartHandshake,
+  Loader2,
   Scale,
   ShieldAlert,
 } from 'lucide-react'
@@ -23,14 +26,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
-import { useCaseStore } from '@/store/caseStore'
-import {
-  computeCaseKPIs,
-  getCasesOverTime,
-  getRiskDistribution,
-  getSupportAllocation,
-  RISK_CHART_COLORS,
-} from '@/constants/caseMetrics'
+import { dashboardService, type BackendDashboardStats } from '@/services/dashboardService'
+import { RISK_CHART_COLORS } from '@/constants/caseMetrics'
 
 const kpiIcons = [Briefcase, AlertTriangle, ShieldAlert, HeartHandshake, Scale, FileText]
 
@@ -43,11 +40,64 @@ export function CaseDashboardPage() {
 }
 
 function DashboardContent() {
-  const cases = useCaseStore((state) => state.cases)
-  const kpis = computeCaseKPIs(cases)
-  const riskDistribution = getRiskDistribution(cases)
-  const casesOverTime = getCasesOverTime(cases)
-  const supportAllocation = getSupportAllocation(cases)
+  const [stats, setStats] = useState<BackendDashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadStats = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await dashboardService.getStats()
+      setStats(data)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unable to load live dashboard stats.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-7xl flex-col items-center justify-center px-4 py-16 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-3 text-sm font-medium">Loading live operational dashboard from MongoDB...</p>
+      </div>
+    )
+  }
+
+  if (error && !stats) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+          <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
+          <h2 className="mt-2 text-lg font-semibold text-destructive">Failed to Load Dashboard</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+          <Button onClick={loadStats} className="mt-4" variant="outline">
+            Retry Connection
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const kpis = stats || {
+    totalActive: 0,
+    critical: 0,
+    highRisk: 0,
+    pendingCounselling: 0,
+    pendingLegalAid: 0,
+    emergencyEscalations: 0,
+    totalCases: 0,
+    resolvedCases: 0,
+    riskDistribution: [],
+    casesOverTime: [],
+    supportAllocation: [],
+  }
 
   const kpiItems = [
     { label: 'Total Active', value: kpis.totalActive },
@@ -65,12 +115,17 @@ function DashboardContent() {
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Operations overview</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">Case Dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Live case metrics derived from the shared in-memory case store.
+            Live operational metrics calculated in real-time from MongoDB database.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/cases">Open Case List</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={loadStats}>
+            Refresh Metrics
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/cases">Open Case List</Link>
+          </Button>
+        </div>
       </div>
 
       {kpis.critical > 0 && (
@@ -102,7 +157,9 @@ function DashboardContent() {
                   <p className="text-sm text-muted-foreground">{item.label}</p>
                   <p className="mt-1 text-3xl font-bold tracking-tight">{item.value}</p>
                 </div>
-                <div className="rounded-xl bg-primary/10 p-2.5 text-primary transition-transform duration-200 group-hover:scale-110"><Icon className="h-5 w-5" aria-hidden="true" /></div>
+                <div className="rounded-xl bg-primary/10 p-2.5 text-primary transition-transform duration-200 group-hover:scale-110">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
               </CardContent>
             </Card>
           )
@@ -115,16 +172,31 @@ function DashboardContent() {
             <CardTitle className="text-base">Risk Distribution</CardTitle>
           </CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={riskDistribution} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85}>
-                  {riskDistribution.map((entry) => (
-                    <Cell key={entry.category} fill={RISK_CHART_COLORS[entry.category]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {kpis.riskDistribution.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                No active cases found
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={kpis.riskDistribution}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={85}
+                  >
+                    {kpis.riskDistribution.map((entry) => (
+                      <Cell
+                        key={entry.category}
+                        fill={RISK_CHART_COLORS[entry.category as keyof typeof RISK_CHART_COLORS] || '#0f766e'}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -134,7 +206,7 @@ function DashboardContent() {
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={casesOverTime}>
+              <LineChart data={kpis.casesOverTime}>
                 <XAxis dataKey="date" tickLine={false} axisLine={false} />
                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
                 <Tooltip />
@@ -150,7 +222,7 @@ function DashboardContent() {
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={supportAllocation}>
+              <BarChart data={kpis.supportAllocation}>
                 <XAxis dataKey="name" tickLine={false} axisLine={false} />
                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
                 <Tooltip />

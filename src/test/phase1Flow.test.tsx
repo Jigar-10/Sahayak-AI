@@ -17,7 +17,7 @@ describe('Phase 1 flow', () => {
         </Layout>
       </MemoryRouter>,
     )
-    expect(screen.getByRole('link', { name: /start safe assessment/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /take safe screener/i })).toBeInTheDocument()
   })
 
   it('completes consent and reaches assessment context step', async () => {

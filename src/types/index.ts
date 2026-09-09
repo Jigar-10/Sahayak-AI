@@ -7,7 +7,7 @@ export type AssessmentStep =
   | 'result'
   | 'recommendations'
 
-export type InteractionChannel = 'text' | 'voice'
+export type InteractionChannel = 'text' | 'voice' | string
 
 export type CaseStatus = 'open' | 'assigned' | 'in-review' | 'closed'
 
@@ -44,10 +44,29 @@ export interface Assessment {
   demoPersonaId?: RiskCategory
 }
 
+export interface CaseUpdate {
+  id: string
+  caseId: string
+  status: CaseStatus
+  title: string
+  message: string
+  timestamp: string
+  updatedBy: string
+  department?: string
+}
+
 export interface CaseRecord {
   id: string
+  caseNumber?: string
+  userId?: string
+  title?: string
+  category?: string
+  description?: string
+  priority?: string
+  assignedDepartment?: string
   assessmentId: string
   createdAt: string
+  updatedAt?: string
   channel: InteractionChannel
   language: string
   svi: number
@@ -64,6 +83,7 @@ export interface CaseRecord {
   notes: CaseNote[]
   escalated: boolean
   timeline: TimelineEvent[]
+  updates?: CaseUpdate[]
 }
 
 export interface TimelineEvent {
@@ -94,3 +114,6 @@ export interface ConsentState {
   voluntaryConsent: boolean
   notDiagnosis: boolean
 }
+
+export * from './chat'
+

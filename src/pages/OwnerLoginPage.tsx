@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { LockKeyhole, Shield } from 'lucide-react'
+import { LockKeyhole, Mail, Shield, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/authStore'
 
 export function OwnerLoginPage() {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
   const isOwner = useAuthStore((state) => state.isOwner)
-  const loginAsOwner = useAuthStore((state) => state.loginAsOwner)
+  const login = useAuthStore((state) => state.login)
+  const authError = useAuthStore((state) => state.error)
+
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -18,16 +23,19 @@ export function OwnerLoginPage() {
 
   if (isOwner) return <Navigate to={from} replace />
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setError('')
+    setLocalError('')
+    setSubmitting(true)
 
-    if (loginAsOwner(password)) {
+    const success = await login(email, password)
+    setSubmitting(false)
+
+    if (success) {
       navigate(from, { replace: true })
-      return
+    } else {
+      setLocalError(authError || 'Invalid credentials. Please verify your email and password.')
     }
-
-    setError('Invalid owner credentials.')
   }
 
   return (
@@ -45,21 +53,52 @@ export function OwnerLoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block space-y-2 text-sm font-medium">
-              Owner password
+              Official email
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="min-h-11 w-full rounded-md border border-border bg-background pl-10 pr-3 outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
+                  autoComplete="username"
+                  required
+                />
+              </div>
+            </label>
+
+            <label className="block space-y-2 text-sm font-medium">
+              Password
               <div className="relative">
                 <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <input
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="min-h-11 w-full rounded-md border border-border bg-background pl-10 pr-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-11 w-full rounded-md border border-border bg-background pl-10 pr-3 outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
                   autoComplete="current-password"
                   required
                 />
               </div>
             </label>
-            {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-            <Button type="submit" className="w-full">Sign in as owner</Button>
+
+
+            {(localError || authError) && (
+              <p className="text-sm text-destructive" role="alert">
+                {localError || authError}
+              </p>
+            )}
+
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                'Sign in as owner'
+              )}
+            </Button>
           </form>
         </CardContent>
       </Card>
