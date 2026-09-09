@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -35,6 +36,9 @@ public class DataInitializer implements CommandLineRunner {
     @org.springframework.beans.factory.annotation.Value("${app.owner.name:Sahayak Case Officer}")
     private String ownerName;
 
+    @org.springframework.beans.factory.annotation.Value("${app.owner.reset-password-on-startup:true}")
+    private boolean resetOwnerPasswordOnStartup;
+
     public DataInitializer(UserRepository userRepository,
                            CaseRepository caseRepository,
                            EmergencyNumberRepository emergencyNumberRepository,
@@ -45,51 +49,140 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private String sanitize(String val, String defaultVal) {
+        if (val == null) return defaultVal;
+        String s = val.trim();
+        if ((s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'"))) {
+            s = s.substring(1, s.length() - 1).trim();
+        }
+        return s.isEmpty() ? defaultVal : s;
+    }
+
     @Override
     public void run(String... args) {
         try {
             initUsers();
             initEmergencyNumbers();
-            initCases();
-            logger.info("Sahayak AI MongoDB Data Initialization Complete.");
+            cleanDemoDataIfPresent();
+            logger.info("Sahayak AI MongoDB Data Initialization Complete (Clean production mode - no demo cases).");
         } catch (Exception e) {
             logger.warn("Database initialization skipped or MongoDB is currently offline: {}", e.getMessage());
         }
     }
 
     private void initUsers() {
-        String normalizedOwnerEmail = ownerEmail != null ? ownerEmail.toLowerCase().trim() : "owner@sahayak.ai";
-        if (!userRepository.existsByEmail(normalizedOwnerEmail)) {
+        initOwnerUser();
+    }
+
+    private void cleanDemoDataIfPresent() {
+        // Remove legacy seed demo cases so the user can test cleanly with their own filed cases
+        List<String> demoCaseIds = Arrays.asList(
+                "CASE-2026-00122", "CASE-2026-00123", "CASE-2026-00124",
+                "CASE-2026-00125", "CASE-2026-00126", "CASE-2026-00200"
+        );
+        caseRepository.deleteAllById(demoCaseIds);
+
+        // Remove demo citizen users if present
+        userRepository.findByEmailIgnoreCase("user@sahayak.ai").ifPresent(userRepository::delete);
+        userRepository.findByEmailIgnoreCase("citizen2@sahayak.ai").ifPresent(userRepository::delete);
+        userRepository.findByEmailIgnoreCase("admin@sahayak.ai").ifPresent(userRepository::delete);
+    }
+
+    private void initOwnerUser() {
+        String normalizedOwnerEmail = sanitize(ownerEmail, "owner@sahayak.ai").toLowerCase().trim();
+        String targetPassword = sanitize(ownerPassword, "Password@123");
+        String targetName = sanitize(ownerName, "Sahayak Case Officer");
+
+        Optional<User> existingOwnerOpt = userRepository.findByEmail(normalizedOwnerEmail)
+                .or(() -> userRepository.findByEmailIgnoreCase(normalizedOwnerEmail));
+
+        if (existingOwnerOpt.isEmpty()) {
             User owner = new User(
-                    ownerName != null ? ownerName.trim() : "Sahayak Case Officer",
+                    targetName,
                     normalizedOwnerEmail,
                     "9876543210",
-                    passwordEncoder.encode(ownerPassword != null ? ownerPassword : "Password@123"),
+                    passwordEncoder.encode(targetPassword),
                     Role.ROLE_OWNER
             );
             userRepository.save(owner);
-            logger.info("Seeded initial owner account: {}", normalizedOwnerEmail);
-        }
+            logger.info("[AUTH-INIT] CREATED default Owner account in MongoDB: email='{}', role='{}'", normalizedOwnerEmail, Role.ROLE_OWNER);
+        } else {
+            User existingOwner = existingOwnerOpt.get();
+            boolean needsSave = false;
+            List<String> repairs = new ArrayList<>();
 
-        if (!userRepository.existsByEmail("admin@sahayak.ai")) {
-            User admin = new User("System Administrator", "admin@sahayak.ai", "9876543211",
-                    passwordEncoder.encode("Password@123"), Role.ROLE_ADMIN);
-            userRepository.save(admin);
-            logger.info("Seeded default admin: admin@sahayak.ai / Password@123");
-        }
+            // 1. Ensure email casing is lowercase
+            if (!normalizedOwnerEmail.equals(existingOwner.getEmail())) {
+                repairs.add(String.format("email normalized ('%s' -> '%s')", existingOwner.getEmail(), normalizedOwnerEmail));
+                existingOwner.setEmail(normalizedOwnerEmail);
+                needsSave = true;
+            }
 
-        if (!userRepository.existsByEmail("user@sahayak.ai")) {
-            User user = new User("Ananya Patel", "user@sahayak.ai", "9876543212",
-                    passwordEncoder.encode("Password@123"), Role.ROLE_USER);
+            // 2. Ensure role is ROLE_OWNER
+            if (existingOwner.getRole() != Role.ROLE_OWNER) {
+                repairs.add(String.format("role upgraded from '%s' to '%s'", existingOwner.getRole(), Role.ROLE_OWNER));
+                existingOwner.setRole(Role.ROLE_OWNER);
+                needsSave = true;
+            }
+
+            // 3. Ensure account is active
+            if (!existingOwner.isActive()) {
+                repairs.add("account activated (active=true)");
+                existingOwner.setActive(true);
+                needsSave = true;
+            }
+
+            // 4. Verify password matches configured app.owner.password; reset if mismatch and dev reset is enabled
+            boolean passwordMatches = existingOwner.getPasswordHash() != null
+                    && passwordEncoder.matches(targetPassword, existingOwner.getPasswordHash());
+
+            if (!passwordMatches) {
+                if (resetOwnerPasswordOnStartup) {
+                    repairs.add("password reset to configured app.owner.password");
+                    existingOwner.setPasswordHash(passwordEncoder.encode(targetPassword));
+                    needsSave = true;
+                } else {
+                    logger.warn("[AUTH-INIT] WARNING: Existing Owner password in database does not match configured password, and resetOwnerPasswordOnStartup is disabled.");
+                }
+            }
+
+            if (needsSave) {
+                userRepository.save(existingOwner);
+                logger.info("[AUTH-INIT] REPAIRED existing Owner account '{}': {}", normalizedOwnerEmail, String.join(", ", repairs));
+            } else {
+                logger.info("[AUTH-INIT] ALREADY EXISTED & VERIFIED Owner account: email='{}', role='{}'", normalizedOwnerEmail, existingOwner.getRole());
+            }
+        }
+    }
+
+    private void initDefaultUser(String email, String name, String password, Role role, String phone) {
+        String normalizedEmail = email.toLowerCase().trim();
+        Optional<User> userOpt = userRepository.findByEmail(normalizedEmail)
+                .or(() -> userRepository.findByEmailIgnoreCase(normalizedEmail));
+
+        if (userOpt.isEmpty()) {
+            User user = new User(name, normalizedEmail, phone, passwordEncoder.encode(password), role);
             userRepository.save(user);
-            logger.info("Seeded default user (User A): user@sahayak.ai / Password@123");
-        }
-
-        if (!userRepository.existsByEmail("citizen2@sahayak.ai")) {
-            User user2 = new User("Pooja Sharma", "citizen2@sahayak.ai", "9876543213",
-                    passwordEncoder.encode("Password@123"), Role.ROLE_USER);
-            userRepository.save(user2);
-            logger.info("Seeded second citizen (User B): citizen2@sahayak.ai / Password@123");
+            logger.info("[AUTH-INIT] Seeded default {}: {} / {}", role, normalizedEmail, password);
+        } else {
+            User existing = userOpt.get();
+            boolean updated = false;
+            if (existing.getRole() != role) {
+                existing.setRole(role);
+                updated = true;
+            }
+            if (!existing.isActive()) {
+                existing.setActive(true);
+                updated = true;
+            }
+            if (resetOwnerPasswordOnStartup && !passwordEncoder.matches(password, existing.getPasswordHash())) {
+                existing.setPasswordHash(passwordEncoder.encode(password));
+                updated = true;
+            }
+            if (updated) {
+                userRepository.save(existing);
+                logger.info("[AUTH-INIT] Synchronized existing account: {} ({})", normalizedEmail, role);
+            }
         }
     }
 

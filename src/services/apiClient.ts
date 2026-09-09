@@ -5,7 +5,7 @@
 
 const BASE_URL =
   import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.port === '5173' ? '/api' : 'http://localhost:8080/api')
+  (typeof window !== 'undefined' ? '/api' : 'http://localhost:8080/api')
 const TOKEN_KEY = 'sahayak_jwt_token'
 
 export interface ApiClientResponse<T> {

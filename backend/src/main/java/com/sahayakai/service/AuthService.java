@@ -118,6 +118,7 @@ public class AuthService {
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         User user = userRepository.findById(userPrincipal.getId())
+                .or(() -> userRepository.findByEmailIgnoreCase(request.getEmail().toLowerCase().trim()))
                 .orElseThrow(() -> new BadCredentialsException("Invalid official email or password."));
 
         if (user.getRole() != Role.ROLE_OWNER && user.getRole() != Role.ROLE_ADMIN) {

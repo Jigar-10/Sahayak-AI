@@ -4,18 +4,21 @@ import com.sahayakai.dto.ChatRequestDto;
 import com.sahayakai.dto.ChatResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ChatService {
 
+    private final GeminiService geminiService;
+
+    public ChatService(GeminiService geminiService) {
+        this.geminiService = geminiService;
+    }
+
     public ChatResponseDto processMessage(ChatRequestDto request) {
         String lower = request.getMessage().trim().toLowerCase();
 
-        // 1. Emergency Assistance & Immediate Danger
+        // 1. Critical Safety First: Emergency Assistance & Immediate Danger (Always guaranteed response)
         if (lower.contains("emergency") || lower.contains("danger") || lower.contains("urgent") ||
                 lower.contains("threat") || lower.contains("police") || lower.contains("ambulance") ||
                 lower.contains("sos")) {
@@ -37,24 +40,38 @@ public class ChatService {
             );
         }
 
-        // 2. Tracking a complaint / case status
+        // 2. Google Gemini AI Generation (if configured and operational)
+        if (geminiService.isConfigured()) {
+            Optional<String> geminiReply = geminiService.generateChatReply(request.getMessage(), request.getHistory());
+            if (geminiReply.isPresent()) {
+                List<String> suggestions = deriveSuggestions(lower);
+                Map<String, String> actionLink = deriveActionLink(lower);
+                return new ChatResponseDto(geminiReply.get(), suggestions, actionLink);
+            }
+        }
+
+        // 3. Fallback: Intelligent Domain-Aware Response Engine
+        return generateRuleBasedResponse(lower);
+    }
+
+    private ChatResponseDto generateRuleBasedResponse(String lower) {
+        // Tracking a complaint / case status
         if (lower.contains("track") || lower.contains("status") || lower.contains("my case") ||
                 lower.contains("check case") || lower.contains("ticket")) {
             Map<String, String> link = new HashMap<>();
-            link.put("label", "Case Worker Login");
-            link.put("to", "/owner-login");
+            link.put("label", "View My Cases");
+            link.put("to", "/profile");
 
             return new ChatResponseDto(
                     "When an assessment is completed and submitted for review, a unique identifier is generated (for example, **CASE-2026-00125**).\n\n" +
-                            "• If you have a case number, designated support officers can view progress in the case management system.\n" +
-                            "• Authorized officers can sign in using their credentials to manage and update active cases.\n\n" +
-                            "Need to check on a specific case or speak with a support specialist?",
+                            "• You can track all your submitted complaints live on your **Profile / My Cases** page.\n" +
+                            "• Support officers post official updates and notes as your grievance progresses through review.",
                     Arrays.asList("How do I file a complaint?", "Emergency assistance", "I need help"),
                     link
             );
         }
 
-        // 3. Filing a complaint / Starting an assessment
+        // Filing a complaint / Starting an assessment
         if (lower.contains("file") || lower.contains("complaint") || lower.contains("start assessment") ||
                 lower.contains("assessment") || lower.contains("report") || lower.contains("submit")) {
 
@@ -68,14 +85,13 @@ public class ChatService {
                             "1. **Clear Consent First** — You learn exactly how your data is handled before anything begins.\n" +
                             "2. **Share Your Story** — Use text or voice, at your own pace, in your preferred language.\n" +
                             "3. **AI Screening** — Our trauma-informed system assesses the situation to identify the right support pathway.\n" +
-                            "4. **Actionable Next Steps** — Receive personalized guidance, verified contacts, and option for human escalation.\n\n" +
-                            "No account is required to start.",
+                            "4. **Actionable Next Steps** — Receive personalized guidance, verified contacts, and option for human escalation.",
                     Arrays.asList("Start Safe Assessment", "Is my data private?", "Track my complaint"),
                     link
             );
         }
 
-        // 4. "I need help" / General distress & support
+        // "I need help" / General distress & support
         if (lower.contains("need help") || lower.contains("help me") || lower.contains("sad") ||
                 lower.contains("afraid") || lower.contains("worried") || lower.contains("anxious") ||
                 lower.contains("scared") || lower.contains("support")) {
@@ -105,4 +121,31 @@ public class ChatService {
                 null
         );
     }
+
+    private List<String> deriveSuggestions(String lower) {
+        if (lower.contains("file") || lower.contains("complaint") || lower.contains("apply")) {
+            return Arrays.asList("Start Safe Assessment", "How do I file a complaint?", "Track my complaint");
+        }
+        if (lower.contains("legal") || lower.contains("rights") || lower.contains("fir") || lower.contains("police")) {
+            return Arrays.asList("What are my legal rights?", "Free legal aid (NALSA)", "Emergency assistance");
+        }
+        return Arrays.asList("Start Safe Assessment", "I need help", "Emergency assistance", "Track my complaint");
+    }
+
+    private Map<String, String> deriveActionLink(String lower) {
+        if (lower.contains("file") || lower.contains("apply") || lower.contains("assessment")) {
+            Map<String, String> link = new HashMap<>();
+            link.put("label", "Begin Safe Assessment");
+            link.put("to", "/consent");
+            return link;
+        }
+        if (lower.contains("track") || lower.contains("status") || lower.contains("my case")) {
+            Map<String, String> link = new HashMap<>();
+            link.put("label", "View My Cases");
+            link.put("to", "/profile");
+            return link;
+        }
+        return null;
+    }
 }
+

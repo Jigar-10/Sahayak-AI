@@ -87,6 +87,14 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    public void setPassword(String password) {
+        this.passwordHash = password;
+    }
+
     public Role getRole() {
         return role;
     }
