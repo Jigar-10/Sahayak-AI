@@ -85,7 +85,7 @@ export function RecommendationsStep({ result }: RecommendationsStepProps) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4">
         {recommendations.map((recommendation) => {
           const Icon = ICON_MAP[recommendation.icon]
 
