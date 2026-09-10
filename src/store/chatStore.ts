@@ -16,7 +16,7 @@ const formatCurrentTime = () => {
 const createWelcomeMessage = (): ChatMessage => ({
   id: 'msg-welcome',
   role: 'assistant',
-  content: "Hi! 👋 I'm Sahayak AI. How can I help you today?",
+  content: "Hi! 👋 I'm Emotrace. How can I help you today?",
   timestamp: formatCurrentTime(),
   status: 'delivered',
   suggestions: INITIAL_SUGGESTIONS,
@@ -30,7 +30,6 @@ interface ChatStore {
   unreadCount: number
   lastFailedInput: string | null
 
-  // Actions
   openChat: () => void
   closeChat: () => void
   toggleChat: () => void
@@ -89,7 +88,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     const currentHistory = get().messages
 
-    // Optimistically append user message and clear current input
     set((state) => ({
       messages: [...state.messages, userMessage],
       currentInput: '',
