@@ -18,7 +18,6 @@ public class ChatService {
     public ChatResponseDto processMessage(ChatRequestDto request) {
         String lower = request.getMessage().trim().toLowerCase();
 
-        // 1. Critical Safety First: Emergency Assistance & Immediate Danger (Always guaranteed response)
         if (lower.contains("emergency") || lower.contains("danger") || lower.contains("urgent") ||
                 lower.contains("threat") || lower.contains("police") || lower.contains("ambulance") ||
                 lower.contains("sos")) {
@@ -40,7 +39,6 @@ public class ChatService {
             );
         }
 
-        // 2. Google Gemini AI Generation (if configured and operational)
         if (geminiService.isConfigured()) {
             Optional<String> geminiReply = geminiService.generateChatReply(request.getMessage(), request.getHistory());
             if (geminiReply.isPresent()) {
@@ -50,12 +48,10 @@ public class ChatService {
             }
         }
 
-        // 3. Fallback: Intelligent Domain-Aware Response Engine
         return generateRuleBasedResponse(lower);
     }
 
     private ChatResponseDto generateRuleBasedResponse(String lower) {
-        // Tracking a complaint / case status
         if (lower.contains("track") || lower.contains("status") || lower.contains("my case") ||
                 lower.contains("check case") || lower.contains("ticket")) {
             Map<String, String> link = new HashMap<>();
@@ -71,16 +67,14 @@ public class ChatService {
             );
         }
 
-        // Filing a complaint / Starting an assessment
         if (lower.contains("file") || lower.contains("complaint") || lower.contains("start assessment") ||
                 lower.contains("assessment") || lower.contains("report") || lower.contains("submit")) {
-
             Map<String, String> link = new HashMap<>();
             link.put("label", "Begin Safe Assessment");
             link.put("to", "/consent");
 
             return new ChatResponseDto(
-                    "Filing a complaint or sharing your experience on Sahayak AI is **completely safe, confidential, and voluntary**.\n\n" +
+                    "Filing a complaint or sharing your experience on Emotrace is **completely safe, confidential, and voluntary**.\n\n" +
                             "Here is how our 4-step process works:\n" +
                             "1. **Clear Consent First** — You learn exactly how your data is handled before anything begins.\n" +
                             "2. **Share Your Story** — Use text or voice, at your own pace, in your preferred language.\n" +
@@ -91,18 +85,16 @@ public class ChatService {
             );
         }
 
-        // "I need help" / General distress & support
         if (lower.contains("need help") || lower.contains("help me") || lower.contains("sad") ||
                 lower.contains("afraid") || lower.contains("worried") || lower.contains("anxious") ||
                 lower.contains("scared") || lower.contains("support")) {
-
             Map<String, String> link = new HashMap<>();
             link.put("label", "Explore Support Resources");
             link.put("to", "/support");
 
             return new ChatResponseDto(
                     "Thank you for reaching out. It takes courage to seek support, and you are not alone.\n\n" +
-                            "Sahayak AI is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
+                            "Emotrace is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
                             "• **Take the Safe Assessment**: Share what you are going through to receive tailored recommendations.\n" +
                             "• **Emergency Resources**: Access 24/7 dedicated helplines for women, children, and urgent medical needs.\n" +
                             "• **Ask me any questions**: I can help you understand your rights, available options, or support centers.\n\n" +
@@ -112,10 +104,9 @@ public class ChatService {
             );
         }
 
-        // Default thoughtful response
         return new ChatResponseDto(
                 "Hello! 👋 I'm here to assist you with confidential support, filing a grievance, or finding emergency services.\n\n" +
-                        "Sahayak AI is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
+                        "Emotrace is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
                         "You can start a confidential assessment, browse emergency contacts, or ask me for specific instructions.",
                 Arrays.asList("I need help", "Emergency assistance", "How do I file a complaint?", "Track my complaint"),
                 null
@@ -148,4 +139,3 @@ public class ChatService {
         return null;
     }
 }
-
