@@ -46,7 +46,7 @@ export function Header() {
             <Shield className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold tracking-tight text-foreground leading-tight">Sahayak <span className="text-primary">AI</span></p>
+            <p className="truncate text-sm font-bold tracking-tight text-foreground leading-tight">Emotrace</p>
             <p className="truncate text-[11px] font-medium text-muted-foreground">Safe support, one step at a time</p>
           </div>
         </Link>
@@ -133,7 +133,7 @@ export function Footer() {
   return (
     <footer className="mt-auto border-t border-border/70 bg-surface/70">
       <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-center text-sm text-muted-foreground lg:px-8">
-        <p className="font-medium text-foreground/75">Sahayak AI · trauma-informed support for safer next steps.</p>
+        <p className="font-medium text-foreground/75">Emotrace · trauma-informed support for safer next steps.</p>
         <p className="text-xs">Prototype built for Smart India Hackathon 2026. Not an official government service. For immediate danger, call 112.</p>
         <div className="pt-2 text-xs flex items-center justify-center gap-3 text-muted-foreground/60">
           <Link to="/owner/login" className="hover:text-muted-foreground transition-colors hover:underline">
