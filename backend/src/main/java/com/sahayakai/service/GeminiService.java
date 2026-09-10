@@ -2,7 +2,6 @@ package com.sahayakai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sahayakai.dto.ChatRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +34,8 @@ public class GeminiService {
     private String baseUrl;
 
     private static final String SYSTEM_INSTRUCTION = """
-            You are Sahayak AI, a trauma-informed, empathetic, and highly knowledgeable legal, safety, and grievance redressal assistant for Indian citizens.
-            
+            You are Emotrace, a trauma-informed, empathetic, and highly knowledgeable legal, safety, and grievance redressal assistant for Indian citizens.
+
             Key Guidelines:
             1. EMPATHY & SAFETY: Maintain a calm, respectful, supportive, non-judgmental tone.
             2. CRISIS & DANGER: If the user indicates immediate physical violence, abuse, or life threat, immediately urge them to reach out to emergency numbers:
@@ -69,12 +68,9 @@ public class GeminiService {
             String url = String.format("%s/%s:generateContent?key=%s", baseUrl, modelName.trim(), apiKey.trim());
 
             Map<String, Object> requestBody = new HashMap<>();
-
-            // System instruction
             Map<String, Object> systemPart = Map.of("text", SYSTEM_INSTRUCTION);
             requestBody.put("systemInstruction", Map.of("parts", List.of(systemPart)));
 
-            // Conversation history & current message
             List<Map<String, Object>> contents = new ArrayList<>();
 
             if (history != null) {
@@ -97,7 +93,6 @@ public class GeminiService {
             ));
             requestBody.put("contents", contents);
 
-            // Generation config
             Map<String, Object> genConfig = Map.of(
                     "temperature", 0.4,
                     "topP", 0.95,
