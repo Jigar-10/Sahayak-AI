@@ -218,13 +218,28 @@ public class CaseService {
                 record.isImmediateDanger()
         );
 
+        // Handle Emergency / GPS Geolocation if passed during standard complaint filing
+        if (dto.isEmergency() || "critical".equalsIgnoreCase(dto.getPriority()) || dto.isImmediateDanger()) {
+            record.setEmergency(true);
+            record.setLatitude(dto.getLatitude());
+            record.setLongitude(dto.getLongitude());
+            record.setLocationAccuracy(dto.getLocationAccuracy());
+            record.setLocationTimestamp(dto.getLocationTimestamp() != null ? dto.getLocationTimestamp() : now);
+            record.setLocationStatus(dto.getLocationStatus() != null ? dto.getLocationStatus() : (dto.getLatitude() != null ? "LOCATION_RECEIVED" : "PENDING"));
+            record.setEmergencyStatus(dto.getLatitude() != null ? "LOCATION_RECEIVED" : "EMERGENCY_TRIGGERED");
+            record.setEmergencyType("CRITICAL_COMPLAINT");
+        }
+
         // Build standard initial timeline
         List<TimelineEvent> timeline = new ArrayList<>();
         timeline.add(new TimelineEvent("1", "Complaint Filed by " + currentUser.getName(), now));
         timeline.add(new TimelineEvent("2", "Confidential Record Encrypted", now));
         timeline.add(new TimelineEvent("3", "Assigned Priority: " + record.getPriority(), now));
-        timeline.add(new TimelineEvent("4", "Routed to " + record.getAssignedDepartment(), now));
-        timeline.add(new TimelineEvent("5", "Awaiting Officer Review", now));
+        if (record.isEmergency() && record.getLatitude() != null) {
+            timeline.add(new TimelineEvent(String.valueOf(timeline.size() + 1), "📍 Live GPS Coordinates Captured: " + record.getLatitude() + ", " + record.getLongitude(), now));
+        }
+        timeline.add(new TimelineEvent(String.valueOf(timeline.size() + 1), "Routed to " + record.getAssignedDepartment(), now));
+        timeline.add(new TimelineEvent(String.valueOf(timeline.size() + 1), "Awaiting Officer Review", now));
         record.setTimeline(timeline);
 
         // Initial Case Update entry
@@ -333,8 +348,156 @@ public class CaseService {
         return caseRepository.save(caseRecord);
     }
 
+    public CaseRecord triggerEmergency(EmergencyTriggerDto dto, UserPrincipal currentUser) {
+        String caseId = generateEmergencyCaseNumber();
+        String now = Instant.now().toString();
+
+        CaseRecord record = new CaseRecord();
+        record.setId(caseId);
+        record.setCaseNumber(caseId);
+        if (currentUser != null) {
+            record.setUserId(currentUser.getId());
+        }
+
+        record.setAssessmentId("EMG-" + System.currentTimeMillis());
+        record.setCreatedAt(now);
+        record.setChannel(dto.getChannel() != null ? dto.getChannel() : "sos_button");
+        record.setLanguage(dto.getPreferredLanguage() != null ? dto.getPreferredLanguage() : "en");
+        record.setSvi(95); // Critical severity index
+
+        record.setCategory(dto.getCategory() != null ? dto.getCategory() : "Emergency Response & Rescue");
+        record.setIncidentCategory(record.getCategory());
+        record.setTitle("🚨 SOS EMERGENCY: " + dto.getEmergencyType().replace('_', ' '));
+        
+        String desc = dto.getNotes() != null && !dto.getNotes().isBlank()
+                ? dto.getNotes()
+                : "Real-time emergency SOS triggered by user device. Immediate response required.";
+        record.setDescription(desc);
+        record.setNarrative(desc);
+
+        record.setRiskCategory(RiskCategory.CRITICAL);
+        record.setPriority("critical");
+        record.setImmediateDanger(true);
+        record.setEscalated(true);
+        record.setStatus(CaseStatus.SUBMITTED);
+        record.setAssignedDepartment("Rapid Emergency & Police/Ambulance Response Cell");
+
+        // Emergency Location Details
+        record.setEmergency(true);
+        record.setEmergencyType(dto.getEmergencyType());
+        record.setLatitude(dto.getLatitude());
+        record.setLongitude(dto.getLongitude());
+        record.setLocationAccuracy(dto.getLocationAccuracy());
+        record.setLocationTimestamp(dto.getLocationTimestamp() != null ? dto.getLocationTimestamp() : now);
+        
+        String locStatus = dto.getLocationStatus();
+        if (locStatus == null || locStatus.isBlank()) {
+            locStatus = (dto.getLatitude() != null && dto.getLongitude() != null) ? "LOCATION_RECEIVED" : "LOCATION_UNAVAILABLE";
+        }
+        record.setLocationStatus(locStatus);
+
+        String emgStatus = "LOCATION_RECEIVED".equalsIgnoreCase(locStatus) ? "LOCATION_RECEIVED" : "EMERGENCY_TRIGGERED";
+        record.setEmergencyStatus(emgStatus);
+
+        // Timeline
+        List<TimelineEvent> timeline = new ArrayList<>();
+        timeline.add(new TimelineEvent("1", "🚨 Emergency SOS Signal Initiated", now));
+        if (record.getLatitude() != null && record.getLongitude() != null) {
+            String accStr = record.getLocationAccuracy() != null ? " (Accuracy: ±" + record.getLocationAccuracy() + "m)" : "";
+            timeline.add(new TimelineEvent("2", "📍 Device GPS Coordinates Transmitted: " + record.getLatitude() + ", " + record.getLongitude() + accStr, now));
+        } else {
+            timeline.add(new TimelineEvent("2", "⚠️ Location Status: " + locStatus, now));
+        }
+        timeline.add(new TimelineEvent("3", "🚨 Dispatched to Police & Emergency Command Center", now));
+        record.setTimeline(timeline);
+
+        // Initial Update
+        CaseUpdate initialUpdate = new CaseUpdate(
+                "1",
+                caseId,
+                CaseStatus.SUBMITTED,
+                "Emergency SOS Alert Broadcast",
+                "Emergency distress signal successfully registered with live device telemetry. Responders alerted.",
+                now,
+                "Emergency Dispatch System",
+                record.getAssignedDepartment()
+        );
+        record.setUpdates(new ArrayList<>(Collections.singletonList(initialUpdate)));
+
+        return caseRepository.save(record);
+    }
+
+    public CaseRecord updateEmergencyLocation(String id, EmergencyLocationUpdateDto dto) {
+        CaseRecord caseRecord = getCaseById(id);
+        caseRecord.setLatitude(dto.getLatitude());
+        caseRecord.setLongitude(dto.getLongitude());
+        caseRecord.setLocationAccuracy(dto.getLocationAccuracy());
+        caseRecord.setLocationTimestamp(dto.getLocationTimestamp() != null ? dto.getLocationTimestamp() : Instant.now().toString());
+        caseRecord.setLocationStatus(dto.getLocationStatus() != null ? dto.getLocationStatus() : "LOCATION_RECEIVED");
+
+        if ("EMERGENCY_TRIGGERED".equalsIgnoreCase(caseRecord.getEmergencyStatus()) || caseRecord.getEmergencyStatus() == null) {
+            caseRecord.setEmergencyStatus("LOCATION_RECEIVED");
+        }
+
+        String now = Instant.now().toString();
+        List<TimelineEvent> timeline = caseRecord.getTimeline();
+        timeline.add(new TimelineEvent(String.valueOf(timeline.size() + 1), "📍 Live GPS Updated: " + dto.getLatitude() + ", " + dto.getLongitude(), now));
+        caseRecord.setTimeline(timeline);
+        caseRecord.setUpdatedAt(Instant.now());
+
+        return caseRepository.save(caseRecord);
+    }
+
+    public List<CaseRecord> getActiveEmergencies() {
+        return caseRepository.findByIsEmergencyTrueOrderByCreatedAtDesc();
+    }
+
+    public CaseRecord updateEmergencyStatus(String id, EmergencyStatusUpdateDto dto, UserPrincipal currentUser) {
+        CaseRecord caseRecord = getCaseById(id);
+        caseRecord.setEmergencyStatus(dto.getEmergencyStatus());
+        if (dto.getResponderNotes() != null && !dto.getResponderNotes().isBlank()) {
+            caseRecord.setResponderNotes(dto.getResponderNotes());
+        }
+
+        String author = currentUser != null ? currentUser.getName() : "Emergency Responder";
+        String now = Instant.now().toString();
+
+        if ("RESOLVED".equalsIgnoreCase(dto.getEmergencyStatus())) {
+            caseRecord.setStatus(CaseStatus.RESOLVED);
+        } else if ("IN_PROGRESS".equalsIgnoreCase(dto.getEmergencyStatus()) || "RESPONDERS_NOTIFIED".equalsIgnoreCase(dto.getEmergencyStatus())) {
+            if (caseRecord.getStatus() == CaseStatus.SUBMITTED || caseRecord.getStatus() == CaseStatus.OPEN) {
+                caseRecord.setStatus(CaseStatus.UNDER_REVIEW);
+            }
+        }
+
+        List<TimelineEvent> timeline = caseRecord.getTimeline();
+        timeline.add(new TimelineEvent(String.valueOf(timeline.size() + 1), "🚨 Emergency Status: " + dto.getEmergencyStatus().replace('_', ' ') + " (by " + author + ")", now));
+        caseRecord.setTimeline(timeline);
+
+        CaseUpdate update = new CaseUpdate(
+                String.valueOf(caseRecord.getUpdates().size() + 1),
+                id,
+                caseRecord.getStatus(),
+                "Emergency Lifecycle: " + dto.getEmergencyStatus().replace('_', ' '),
+                dto.getResponderNotes() != null ? dto.getResponderNotes() : "Emergency status transitioned to " + dto.getEmergencyStatus(),
+                now,
+                author,
+                caseRecord.getAssignedDepartment()
+        );
+        caseRecord.getUpdates().add(update);
+        caseRecord.setUpdatedAt(Instant.now());
+
+        return caseRepository.save(caseRecord);
+    }
+
     public List<String> getAvailableOfficers() {
         return DEFAULT_OFFICERS;
+    }
+
+    private synchronized String generateEmergencyCaseNumber() {
+        long count = caseRepository.count();
+        long nextNum = 100 + count;
+        return String.format("EMG-2026-%05d", nextNum);
     }
 
     private synchronized String generateCaseNumber() {

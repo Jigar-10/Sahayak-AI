@@ -17,6 +17,7 @@ public class DashboardStatsDto {
     private long assignedCases;
     private long rejectedCases;
     private long emergencyNumbersCount;
+    private long activeEmergencies;
 
     private List<Map<String, Object>> riskDistribution;
     private List<Map<String, Object>> casesOverTime;
@@ -127,6 +128,14 @@ public class DashboardStatsDto {
 
     public void setEmergencyNumbersCount(long emergencyNumbersCount) {
         this.emergencyNumbersCount = emergencyNumbersCount;
+    }
+
+    public long getActiveEmergencies() {
+        return activeEmergencies;
+    }
+
+    public void setActiveEmergencies(long activeEmergencies) {
+        this.activeEmergencies = activeEmergencies;
     }
 
     public List<Map<String, Object>> getRiskDistribution() {

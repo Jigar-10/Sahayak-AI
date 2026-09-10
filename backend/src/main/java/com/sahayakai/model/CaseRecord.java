@@ -69,6 +69,29 @@ public class CaseRecord {
 
     private boolean escalated = false;
 
+    // Emergency & Real-time Location Sharing fields
+    @Indexed
+    @com.fasterxml.jackson.annotation.JsonProperty("isEmergency")
+    @org.springframework.data.mongodb.core.mapping.Field("isEmergency")
+    private boolean isEmergency = false;
+
+    private Double latitude;
+
+    private Double longitude;
+
+    private Double locationAccuracy;
+
+    private String locationTimestamp;
+
+    private String locationStatus; // "LOCATION_RECEIVED", "LOCATION_DENIED", "LOCATION_UNAVAILABLE", "PENDING"
+
+    @Indexed
+    private String emergencyStatus; // "EMERGENCY_TRIGGERED", "LOCATION_RECEIVED", "RESPONDERS_NOTIFIED", "IN_PROGRESS", "RESOLVED"
+
+    private String emergencyType = "SOS_PANIC";
+
+    private String responderNotes;
+
     private List<TimelineEvent> timeline = new ArrayList<>();
 
     private List<CaseUpdate> updates = new ArrayList<>();
@@ -330,6 +353,78 @@ public class CaseRecord {
 
     public void setUpdates(List<CaseUpdate> updates) {
         this.updates = updates != null ? updates : new ArrayList<>();
+    }
+
+    public boolean isEmergency() {
+        return isEmergency;
+    }
+
+    public void setEmergency(boolean emergency) {
+        isEmergency = emergency;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLocationAccuracy() {
+        return locationAccuracy;
+    }
+
+    public void setLocationAccuracy(Double locationAccuracy) {
+        this.locationAccuracy = locationAccuracy;
+    }
+
+    public String getLocationTimestamp() {
+        return locationTimestamp;
+    }
+
+    public void setLocationTimestamp(String locationTimestamp) {
+        this.locationTimestamp = locationTimestamp;
+    }
+
+    public String getLocationStatus() {
+        return locationStatus;
+    }
+
+    public void setLocationStatus(String locationStatus) {
+        this.locationStatus = locationStatus;
+    }
+
+    public String getEmergencyStatus() {
+        return emergencyStatus;
+    }
+
+    public void setEmergencyStatus(String emergencyStatus) {
+        this.emergencyStatus = emergencyStatus;
+    }
+
+    public String getEmergencyType() {
+        return emergencyType;
+    }
+
+    public void setEmergencyType(String emergencyType) {
+        this.emergencyType = emergencyType;
+    }
+
+    public String getResponderNotes() {
+        return responderNotes;
+    }
+
+    public void setResponderNotes(String responderNotes) {
+        this.responderNotes = responderNotes;
     }
 
     public Instant getUpdatedAt() {

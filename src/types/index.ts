@@ -55,6 +55,19 @@ export interface CaseUpdate {
   department?: string
 }
 
+export type EmergencyStatus =
+  | 'EMERGENCY_TRIGGERED'
+  | 'LOCATION_RECEIVED'
+  | 'RESPONDERS_NOTIFIED'
+  | 'IN_PROGRESS'
+  | 'RESOLVED'
+
+export type LocationStatus =
+  | 'LOCATION_RECEIVED'
+  | 'LOCATION_DENIED'
+  | 'LOCATION_UNAVAILABLE'
+  | 'PENDING'
+
 export interface CaseRecord {
   id: string
   caseNumber?: string
@@ -84,6 +97,17 @@ export interface CaseRecord {
   escalated: boolean
   timeline: TimelineEvent[]
   updates?: CaseUpdate[]
+
+  // Real-time Emergency & Geolocation Location Sharing
+  isEmergency?: boolean
+  latitude?: number
+  longitude?: number
+  locationAccuracy?: number
+  locationTimestamp?: string
+  locationStatus?: LocationStatus | string
+  emergencyStatus?: EmergencyStatus | string
+  emergencyType?: string
+  responderNotes?: string
 }
 
 export interface TimelineEvent {

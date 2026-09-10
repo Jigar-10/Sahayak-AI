@@ -28,6 +28,14 @@ public class CaseCreateDto {
     private String location;
     private String contactPreference;
 
+    // Optional GPS Geolocation
+    private boolean isEmergency;
+    private Double latitude;
+    private Double longitude;
+    private Double locationAccuracy;
+    private String locationTimestamp;
+    private String locationStatus;
+
     public CaseCreateDto() {
     }
 
@@ -181,5 +189,53 @@ public class CaseCreateDto {
 
     public void setContactPreference(String contactPreference) {
         this.contactPreference = contactPreference;
+    }
+
+    public boolean isEmergency() {
+        return isEmergency;
+    }
+
+    public void setEmergency(boolean emergency) {
+        isEmergency = emergency;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLocationAccuracy() {
+        return locationAccuracy;
+    }
+
+    public void setLocationAccuracy(Double locationAccuracy) {
+        this.locationAccuracy = locationAccuracy;
+    }
+
+    public String getLocationTimestamp() {
+        return locationTimestamp;
+    }
+
+    public void setLocationTimestamp(String locationTimestamp) {
+        this.locationTimestamp = locationTimestamp;
+    }
+
+    public String getLocationStatus() {
+        return locationStatus;
+    }
+
+    public void setLocationStatus(String locationStatus) {
+        this.locationStatus = locationStatus;
     }
 }

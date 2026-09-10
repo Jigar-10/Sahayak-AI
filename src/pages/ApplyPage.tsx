@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/authStore'
 import { caseService } from '@/services/caseService'
+import { getDeviceLocation } from '@/services/emergencyLocationService'
 import { useToast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
 
@@ -82,6 +83,27 @@ export function ApplyPage() {
 
     setSubmitting(true)
     try {
+      let geoData: {
+        isEmergency?: boolean
+        latitude?: number
+        longitude?: number
+        locationAccuracy?: number
+        locationTimestamp?: string
+        locationStatus?: string
+      } = {}
+
+      if (priority === 'critical') {
+        const loc = await getDeviceLocation()
+        geoData = {
+          isEmergency: true,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          locationAccuracy: loc.accuracy,
+          locationTimestamp: loc.timestamp || new Date().toISOString(),
+          locationStatus: loc.locationStatus,
+        }
+      }
+
       // The Java backend automatically binds currentUser.getId() as owner.
       // We do NOT send untrusted client userId.
       const payload = {
@@ -95,6 +117,7 @@ export function ApplyPage() {
         channel: contactPreference,
         location: location.trim(),
         language: 'en',
+        ...geoData,
       }
 
       const created = await caseService.createCase(payload)

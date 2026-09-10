@@ -14,6 +14,8 @@ import {
   RefreshCw,
   UserCheck,
   ShieldAlert,
+  Siren,
+  MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -49,8 +51,10 @@ export const OwnerCasesPage: React.FC = () => {
   const filteredCases = useMemo(() => {
     return cases
       .filter((c) => {
-        // Risk Filter
-        if (riskFilter !== 'all' && c.riskCategory !== riskFilter) {
+        // Risk / Emergency Filter
+        if (riskFilter === 'emergency') {
+          if (!c.isEmergency) return false
+        } else if (riskFilter !== 'all' && c.riskCategory !== riskFilter) {
           return false
         }
 
@@ -211,6 +215,7 @@ export const OwnerCasesPage: React.FC = () => {
               className="h-10 rounded-xl bg-slate-800 border border-slate-700 px-3 text-xs text-slate-200 outline-none focus:border-amber-500"
             >
               <option value="all">All Risk Levels</option>
+              <option value="emergency">🚨 Emergency SOS Only</option>
               <option value="critical">Critical Risk</option>
               <option value="high">High Risk</option>
               <option value="moderate">Moderate Risk</option>
@@ -310,8 +315,20 @@ export const OwnerCasesPage: React.FC = () => {
                     <span className="font-mono text-xs font-bold text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-md border border-amber-500/20">
                       {caseId}
                     </span>
+                    {c.isEmergency && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white flex items-center gap-1 shadow-sm shadow-red-500/30 animate-pulse">
+                        <Siren className="w-3 h-3" />
+                        <span>Emergency SOS</span>
+                      </span>
+                    )}
                     {getRiskBadge(c.riskCategory)}
                     {getStatusBadge(c.status)}
+                    {c.latitude && c.longitude && (
+                      <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        <MapPin className="w-3 h-3 text-red-400" />
+                        <span>GPS: {c.latitude.toFixed(4)}, {c.longitude.toFixed(4)}</span>
+                      </span>
+                    )}
                     <span className="text-xs text-slate-500 font-mono">{dateStr}</span>
                   </div>
 

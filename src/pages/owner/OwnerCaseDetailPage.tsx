@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { caseService } from '@/services/caseService'
+import { emergencyLocationService } from '@/services/emergencyLocationService'
 import { useAuthStore } from '@/store/authStore'
 import type { CaseRecord, CaseStatus, RiskCategory } from '@/types'
 import {
@@ -16,6 +17,10 @@ import {
   Loader2,
   Flame,
   Building,
+  MapPin,
+  Navigation,
+  ExternalLink,
+  Siren,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -171,6 +176,18 @@ export const OwnerCaseDetailPage: React.FC = () => {
     }
   }
 
+  const handleUpdateEmergencyStatus = async (newStatus: string) => {
+    if (!id) return
+    try {
+      const updated = await emergencyLocationService.updateStatus(id, newStatus)
+      setCaseRecord(updated)
+      setActionSuccess(`Emergency lifecycle status updated to "${newStatus.replace('_', ' ')}".`)
+      setTimeout(() => setActionSuccess(null), 4000)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update emergency status.')
+    }
+  }
+
   const getRiskBadge = (risk: RiskCategory | string) => {
     switch (risk?.toLowerCase()) {
       case 'critical':
@@ -286,6 +303,121 @@ export const OwnerCaseDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Incident Narrative, Indicators & Timeline */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Emergency GPS Telemetry & Dispatch Card */}
+          {(caseRecord.isEmergency || (caseRecord.latitude && caseRecord.longitude)) && (
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-red-950/40 via-slate-900/90 to-slate-900/90 border-2 border-red-500/50 space-y-4 shadow-xl shadow-red-500/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-500/30 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30">
+                    <Siren className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-white flex items-center gap-2">
+                      <span>Emergency Location &amp; Dispatch Telemetry</span>
+                      <span className="px-2 py-0.5 text-[10px] uppercase font-bold rounded-full bg-red-500 text-white">
+                        {caseRecord.emergencyType || 'SOS_PANIC'}
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-400">
+                      Live device coordinates captured and routed for police and ambulance response.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 text-xs font-bold uppercase rounded-lg border ${
+                    caseRecord.emergencyStatus === 'RESOLVED'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      : caseRecord.emergencyStatus === 'IN_PROGRESS' || caseRecord.emergencyStatus === 'RESPONDERS_NOTIFIED'
+                      ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  }`}>
+                    {caseRecord.emergencyStatus?.replace('_', ' ') || 'EMERGENCY TRIGGERED'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Coordinates Box & Navigation */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                    GPS Coordinates
+                  </span>
+                  {caseRecord.latitude && caseRecord.longitude ? (
+                    <div className="space-y-1">
+                      <div className="text-base font-mono font-bold text-emerald-400 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+                        <span>{caseRecord.latitude.toFixed(6)}, {caseRecord.longitude.toFixed(6)}</span>
+                      </div>
+                      <div className="text-xs text-slate-400 flex items-center gap-3">
+                        {caseRecord.locationAccuracy && (
+                          <span>Accuracy: ±{Math.round(caseRecord.locationAccuracy)} meters</span>
+                        )}
+                        <span>Captured: {caseRecord.locationTimestamp ? new Date(caseRecord.locationTimestamp).toLocaleTimeString() : 'At SOS Trigger'}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-amber-400 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      <span>{caseRecord.locationStatus || 'Location access unavailable from client device'}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Map Action & Emergency Status Transition Controls */}
+                <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between gap-3">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                    Responder Dispatch Actions
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {caseRecord.latitude && caseRecord.longitude && (
+                      <a
+                        href={`https://www.google.com/maps?q=${caseRecord.latitude},${caseRecord.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all hover:scale-105"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        <span>Open in Google Maps</span>
+                        <ExternalLink className="w-3 h-3 ml-1 opacity-80" />
+                      </a>
+                    )}
+                    {caseRecord.emergencyStatus !== 'RESPONDERS_NOTIFIED' && caseRecord.emergencyStatus !== 'RESOLVED' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateEmergencyStatus('RESPONDERS_NOTIFIED')}
+                        className="border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 text-xs"
+                      >
+                        Dispatch Responders
+                      </Button>
+                    )}
+                    {caseRecord.emergencyStatus === 'RESPONDERS_NOTIFIED' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateEmergencyStatus('IN_PROGRESS')}
+                        className="border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs"
+                      >
+                        Set In Progress
+                      </Button>
+                    )}
+                    {caseRecord.emergencyStatus !== 'RESOLVED' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateEmergencyStatus('RESOLVED')}
+                        className="border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs"
+                      >
+                        Resolve Emergency
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Incident Narrative Card */}
           <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-lg">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">

@@ -68,6 +68,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/emergency-numbers/**").permitAll()
 
 
+                        // Public Emergency & Live SOS Location Dispatch
+                        .requestMatchers(HttpMethod.POST, "/api/emergency/trigger").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/emergency/*/location").permitAll()
+
                         // Public AI Chatbot
                         .requestMatchers("/api/chat/**").permitAll()
 
@@ -81,6 +85,8 @@ public class SecurityConfig {
 
                         // Owner & Admin Restricted Operations
                         .requestMatchers("/api/dashboard/**").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers("/api/emergency/active").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/emergency/*/status").hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/cases").hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/cases/*/assign").hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/cases/*/status").hasAnyRole("OWNER", "ADMIN")

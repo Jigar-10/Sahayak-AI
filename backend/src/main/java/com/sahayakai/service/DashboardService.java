@@ -40,6 +40,14 @@ public class DashboardService {
                 .filter(c -> c.getRiskCategory() == RiskCategory.HIGH)
                 .count();
 
+        long lowRisk = activeCases.stream()
+                .filter(c -> c.getRiskCategory() == RiskCategory.LOW)
+                .count();
+
+        long modRisk = activeCases.stream()
+                .filter(c -> c.getRiskCategory() == RiskCategory.MODERATE)
+                .count();
+
         long pendingCounselling = activeCases.stream()
                 .filter(c -> (c.getAssignedOfficer() == null || !c.getAssignedOfficer().toLowerCase().contains("counsellor"))
                         && (c.getRiskCategory() == RiskCategory.MODERATE || c.getRiskCategory() == RiskCategory.HIGH || c.getRiskCategory() == RiskCategory.CRITICAL))
@@ -72,61 +80,55 @@ public class DashboardService {
                 .count();
         long emergencyNumbersCount = emergencyNumberRepository.count();
 
+        long activeEmergencies = allCases.stream()
+                .filter(c -> c.isEmergency() && !"RESOLVED".equalsIgnoreCase(c.getEmergencyStatus()))
+                .count();
+
         // 1. Risk Distribution
         List<Map<String, Object>> riskDistribution = new ArrayList<>();
-        for (RiskCategory category : RiskCategory.values()) {
-            long count = activeCases.stream()
-                    .filter(c -> c.getRiskCategory() == category)
-                    .count();
+        riskDistribution.add(Map.of("name", "Low Risk", "value", lowRisk));
+        riskDistribution.add(Map.of("name", "Moderate Risk", "value", modRisk));
+        riskDistribution.add(Map.of("name", "High Risk", "value", highRisk));
+        riskDistribution.add(Map.of("name", "Critical", "value", critical));
 
-            Map<String, Object> entry = new HashMap<>();
-            entry.put("name", category.getValue().substring(0, 1).toUpperCase() + category.getValue().substring(1));
-            entry.put("value", count);
-            entry.put("category", category.getValue());
-            riskDistribution.add(entry);
-        }
-
-        // 2. Cases Over Time (last 7 days)
-        List<Map<String, Object>> casesOverTime = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
+        // 2. Cases Over Time (Last 7 Days)
+        Map<String, Long> timelineCounts = new LinkedHashMap<>();
         LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
 
         for (int i = 6; i >= 0; i--) {
-            LocalDate day = today.minusDays(i);
-            String dayStr = day.format(formatter);
-
-            long count = allCases.stream().filter(c -> {
-                if (c.getCreatedAt() == null) return false;
-                try {
-                    return c.getCreatedAt().startsWith(day.toString());
-                } catch (Exception e) {
-                    return false;
-                }
-            }).count();
-
-            Map<String, Object> point = new HashMap<>();
-            point.put("date", dayStr);
-            point.put("count", count);
-            casesOverTime.add(point);
+            LocalDate date = today.minusDays(i);
+            String dateLabel = date.format(formatter);
+            timelineCounts.put(dateLabel, 0L);
         }
 
-        // 3. Support Allocation
-        Map<String, Long> supportCounts = new LinkedHashMap<>();
-        supportCounts.put("counselling", 0L);
-        supportCounts.put("legal", 0L);
-        supportCounts.put("medical", 0L);
-        supportCounts.put("police", 0L);
-        supportCounts.put("witness", 0L);
-
-        for (CaseRecord c : activeCases) {
-            if (c.getRecommendedActions() != null) {
-                for (String action : c.getRecommendedActions()) {
-                    String actionKey = action.toLowerCase().trim();
-                    if (supportCounts.containsKey(actionKey)) {
-                        supportCounts.put(actionKey, supportCounts.get(actionKey) + 1);
+        allCases.forEach(c -> {
+            try {
+                if (c.getCreatedAt() != null) {
+                    LocalDate createdDate = LocalDate.parse(c.getCreatedAt().substring(0, 10));
+                    String label = createdDate.format(formatter);
+                    if (timelineCounts.containsKey(label)) {
+                        timelineCounts.put(label, timelineCounts.get(label) + 1);
                     }
                 }
+            } catch (Exception ignored) {
             }
+        });
+
+        List<Map<String, Object>> casesOverTime = new ArrayList<>();
+        timelineCounts.forEach((date, count) -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("date", date);
+            map.put("cases", count);
+            casesOverTime.add(map);
+        });
+
+        // 3. Support Allocation By Category
+        Map<String, Long> supportCounts = new HashMap<>();
+        for (CaseRecord c : allCases) {
+            String cat = c.getCategory();
+            if (cat == null || cat.isBlank()) cat = "General";
+            supportCounts.put(cat, supportCounts.getOrDefault(cat, 0L) + 1);
         }
 
         List<Map<String, Object>> supportAllocation = new ArrayList<>();
@@ -151,6 +153,7 @@ public class DashboardService {
         dto.setAssignedCases(assignedCases);
         dto.setRejectedCases(rejectedCases);
         dto.setEmergencyNumbersCount(emergencyNumbersCount);
+        dto.setActiveEmergencies(activeEmergencies);
         dto.setRiskDistribution(riskDistribution);
         dto.setCasesOverTime(casesOverTime);
         dto.setSupportAllocation(supportAllocation);

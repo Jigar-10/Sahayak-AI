@@ -21,4 +21,10 @@ public interface CaseRepository extends MongoRepository<CaseRecord, String> {
     long countByRiskCategoryAndStatusNot(RiskCategory riskCategory, CaseStatus status);
     long countByEscalatedTrueAndStatusNot(CaseStatus status);
     long countByStatusNot(CaseStatus status);
+
+    @org.springframework.data.mongodb.repository.Query(value = "{ $or: [ { 'isEmergency': true }, { 'emergency': true } ] }", sort = "{ 'createdAt': -1 }")
+    List<CaseRecord> findByIsEmergencyTrueOrderByCreatedAtDesc();
+
+    @org.springframework.data.mongodb.repository.Query(value = "{ $or: [ { 'isEmergency': true }, { 'emergency': true } ], 'emergencyStatus': { $ne: ?0 } }", count = true)
+    long countByIsEmergencyTrueAndEmergencyStatusNot(String emergencyStatus);
 }
