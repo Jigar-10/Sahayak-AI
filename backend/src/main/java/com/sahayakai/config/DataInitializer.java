@@ -64,7 +64,7 @@ public class DataInitializer implements CommandLineRunner {
             initUsers();
             initEmergencyNumbers();
             cleanDemoDataIfPresent();
-            logger.info("Sahayak AI MongoDB Data Initialization Complete (Clean production mode - no demo cases).");
+            logger.info("EmoTrace MongoDB Data Initialization Complete (Clean production mode - no demo cases).");
         } catch (Exception e) {
             logger.warn("Database initialization skipped or MongoDB is currently offline: {}", e.getMessage());
         }

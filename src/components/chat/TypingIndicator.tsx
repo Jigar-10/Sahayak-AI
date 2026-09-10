@@ -5,7 +5,7 @@ export function TypingIndicator() {
     <div
       className="flex items-end gap-2.5 animate-enter"
       role="status"
-      aria-label="Sahayak AI is typing"
+      aria-label="EmoTrace is typing"
     >
       {/* AI Avatar */}
       <div
@@ -29,7 +29,7 @@ export function TypingIndicator() {
           className="h-2 w-2 rounded-full bg-primary/60 animate-bounce"
           style={{ animationDelay: '400ms', animationDuration: '900ms' }}
         />
-        <span className="sr-only">Sahayak AI is thinking...</span>
+        <span className="sr-only">EmoTrace is thinking...</span>
       </div>
     </div>
   )

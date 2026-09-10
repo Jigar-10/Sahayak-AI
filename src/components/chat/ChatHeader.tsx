@@ -19,7 +19,7 @@ export function ChatHeader({ onClose }: ChatHeaderProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <h3 className="truncate text-sm font-bold tracking-tight text-foreground leading-none">
-              Emotrace
+              EmoTrace
             </h3>
             <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

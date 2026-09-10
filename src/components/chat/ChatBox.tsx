@@ -35,9 +35,9 @@ export function ChatBox() {
       {isOpen && (
         <div
           ref={windowRef}
-          id="sahayak-chatbox-window"
+          id="emotrace-chatbox-window"
           role="dialog"
-          aria-label="Sahayak AI Chat Assistant"
+          aria-label="EmoTrace AI Chat Assistant"
           className={cn(
             'mb-3 flex flex-col overflow-hidden border bg-surface/95 backdrop-blur-xl transition-all duration-300',
             // Border & Corners: 20-22px

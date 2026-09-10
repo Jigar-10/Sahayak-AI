@@ -45,7 +45,7 @@ describe('Owner Authentication & Route Protection Tests', () => {
     )
 
     expect(screen.getByText(/Official Case Officer Login/i)).toBeDefined()
-    expect(screen.getByPlaceholderText(/officer@sahayak\.ai/i)).toBeDefined()
+    expect(screen.getByPlaceholderText(/officer@emotrace\.ai/i)).toBeDefined()
     expect(screen.getByPlaceholderText(/••••••••••••/i)).toBeDefined()
     expect(screen.getByRole('button', { name: /Authorize & Enter Console/i })).toBeDefined()
     expect(screen.getByText(/Unauthorized access attempts to this operational console/i)).toBeDefined()
@@ -70,7 +70,7 @@ describe('Owner Authentication & Route Protection Tests', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByPlaceholderText(/officer@sahayak\.ai/i), {
+    fireEvent.change(screen.getByPlaceholderText(/officer@emotrace\.ai/i), {
       target: { value: 'owner@sahayak.ai' },
     })
     fireEvent.change(screen.getByPlaceholderText(/••••••••••••/i), {
@@ -101,7 +101,7 @@ describe('Owner Authentication & Route Protection Tests', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByPlaceholderText(/officer@sahayak\.ai/i), {
+    fireEvent.change(screen.getByPlaceholderText(/officer@emotrace\.ai/i), {
       target: { value: 'citizen@sahayak.ai' },
     })
     fireEvent.change(screen.getByPlaceholderText(/••••••••••••/i), {

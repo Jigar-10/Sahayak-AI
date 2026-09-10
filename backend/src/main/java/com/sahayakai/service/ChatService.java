@@ -74,7 +74,7 @@ public class ChatService {
             link.put("to", "/consent");
 
             return new ChatResponseDto(
-                    "Filing a complaint or sharing your experience on Emotrace is **completely safe, confidential, and voluntary**.\n\n" +
+                    "Filing a complaint or sharing your experience on EmoTrace is **completely safe, confidential, and voluntary**.\n\n" +
                             "Here is how our 4-step process works:\n" +
                             "1. **Clear Consent First** — You learn exactly how your data is handled before anything begins.\n" +
                             "2. **Share Your Story** — Use text or voice, at your own pace, in your preferred language.\n" +
@@ -94,7 +94,7 @@ public class ChatService {
 
             return new ChatResponseDto(
                     "Thank you for reaching out. It takes courage to seek support, and you are not alone.\n\n" +
-                            "Emotrace is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
+                            "EmoTrace is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
                             "• **Take the Safe Assessment**: Share what you are going through to receive tailored recommendations.\n" +
                             "• **Emergency Resources**: Access 24/7 dedicated helplines for women, children, and urgent medical needs.\n" +
                             "• **Ask me any questions**: I can help you understand your rights, available options, or support centers.\n\n" +
@@ -106,7 +106,7 @@ public class ChatService {
 
         return new ChatResponseDto(
                 "Hello! 👋 I'm here to assist you with confidential support, filing a grievance, or finding emergency services.\n\n" +
-                        "Emotrace is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
+                        "EmoTrace is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
                         "You can start a confidential assessment, browse emergency contacts, or ask me for specific instructions.",
                 Arrays.asList("I need help", "Emergency assistance", "How do I file a complaint?", "Track my complaint"),
                 null

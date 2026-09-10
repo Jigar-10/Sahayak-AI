@@ -16,7 +16,7 @@ const formatCurrentTime = () => {
 const createWelcomeMessage = (): ChatMessage => ({
   id: 'msg-welcome',
   role: 'assistant',
-  content: "Hi! 👋 I'm Emotrace. How can I help you today?",
+  content: "Hi! 👋 I'm EmoTrace. How can I help you today?",
   timestamp: formatCurrentTime(),
   status: 'delivered',
   suggestions: INITIAL_SUGGESTIONS,

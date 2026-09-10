@@ -121,13 +121,12 @@ async function generateMockResponse(userInput: string): Promise<ChatServiceRespo
   ) {
     return {
       reply:
-        "Filing a complaint or sharing your experience on Sahayak AI is **completely safe, confidential, and voluntary**.\n\n" +
+        "Filing a complaint or sharing your experience on EmoTrace is **completely safe, confidential, and voluntary**.\n\n" +
         "Here is how our 4-step process works:\n" +
         "1. **Clear Consent First** — You learn exactly how your data is handled before anything begins.\n" +
         "2. **Share Your Story** — Use text or voice, at your own pace, in your preferred language.\n" +
         "3. **AI Screening** — Our trauma-informed system assesses the situation to identify the right support pathway.\n" +
-        "4. **Actionable Next Steps** — Receive personalized guidance, verified contacts, and option for human escalation.\n\n" +
-        "No account is required to start.",
+        "4. **Actionable Next Steps** — Receive personalized guidance, verified contacts, and option for human escalation.",
       suggestions: ['Start Safe Assessment', 'Is my data private?', 'Track my complaint'],
       actionLink: {
         label: 'Begin Safe Assessment',
@@ -150,7 +149,7 @@ async function generateMockResponse(userInput: string): Promise<ChatServiceRespo
     return {
       reply:
         "Thank you for reaching out. It takes courage to seek support, and you are not alone.\n\n" +
-        "Sahayak AI is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
+        "EmoTrace is here to provide a calm, pressure-free space. Here are a few ways we can help right now:\n\n" +
         "• **Take the Safe Assessment**: Share what you are going through to receive tailored recommendations.\n" +
         "• **Emergency Resources**: Access 24/7 dedicated helplines for women, children, and urgent medical needs.\n" +
         "• **Ask me any questions**: I can help you understand your rights, available options, or support centers.\n\n" +
@@ -177,8 +176,8 @@ async function generateMockResponse(userInput: string): Promise<ChatServiceRespo
   ) {
     return {
       reply:
-        "**Privacy and safety are built into the core of Sahayak AI:**\n\n" +
-        "• **No account required** — You do not need to register personal accounts to use the screener.\n" +
+        "**Privacy and safety are built into the core of EmoTrace:**\n\n" +
+        "• **Confidential authentication** — Protects personal grievance data with user accounts.\n" +
         "• **Explicit consent** — We explain exactly what is captured before you type or speak.\n" +
         "• **Trauma-informed** — You are never forced to share anything you are uncomfortable sharing.\n" +
         "• **Safe quick exit** — Emergency options are always available at the top of every screen.",
@@ -215,7 +214,7 @@ async function generateMockResponse(userInput: string): Promise<ChatServiceRespo
   return {
     reply:
       `I understand you're asking about "${userInput.slice(0, 80)}${userInput.length > 80 ? '...' : ''}".\n\n` +
-      "Sahayak AI is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
+      "EmoTrace is designed to help you navigate challenging situations with clear, trauma-informed guidance. " +
       "You can start a confidential assessment, browse emergency contacts, or ask me for specific instructions.",
     suggestions: [
       'I need help',

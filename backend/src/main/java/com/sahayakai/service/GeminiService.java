@@ -34,7 +34,7 @@ public class GeminiService {
     private String baseUrl;
 
     private static final String SYSTEM_INSTRUCTION = """
-            You are Emotrace, a trauma-informed, empathetic, and highly knowledgeable legal, safety, and grievance redressal assistant for Indian citizens.
+            You are EmoTrace, a trauma-informed, empathetic, and highly knowledgeable legal, safety, and grievance redressal assistant for Indian citizens.
 
             Key Guidelines:
             1. EMPATHY & SAFETY: Maintain a calm, respectful, supportive, non-judgmental tone.

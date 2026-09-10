@@ -15,7 +15,7 @@ describe('chatStore', () => {
 
     const welcomeMsg = state.messages[0]
     expect(welcomeMsg.role).toBe('assistant')
-    expect(welcomeMsg.content).toContain("Hi! 👋 I'm Sahayak AI.")
+    expect(welcomeMsg.content).toContain("Hi! 👋 I'm EmoTrace.")
     expect(welcomeMsg.suggestions).toEqual([
       'I need help',
       'Emergency assistance',

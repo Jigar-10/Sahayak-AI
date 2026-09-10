@@ -21,8 +21,8 @@ export function ChatFloatingButton() {
         type="button"
         onClick={toggleChat}
         aria-expanded={isOpen}
-        aria-controls="sahayak-chatbox-window"
-        aria-label={isOpen ? 'Close Sahayak AI chat' : 'Open Sahayak AI chat assistant'}
+        aria-controls="emotrace-chatbox-window"
+        aria-label={isOpen ? 'Close EmoTrace chat' : 'Open EmoTrace AI chat assistant'}
         className={cn(
           'relative flex items-center justify-center rounded-full text-white transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none cursor-pointer',
           // Sizing: 56px mobile, 60px desktop

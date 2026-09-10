@@ -94,7 +94,7 @@ export function OwnerLoginPage() {
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="officer@sahayak.ai"
+                    placeholder="officer@emotrace.ai"
                     className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-800/80 pl-10 pr-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm transition-all"
                     autoComplete="username"
                     required
